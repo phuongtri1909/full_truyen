@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /chapter/
+Allow: /search
+Allow: /login
+Allow: /register
+Allow: /admin/delete-comments/
+Allow: /assets/images/logo/logo_conduongbachu.webp
+
+Disallow: /admin/
+Disallow: /password/
+Disallow: /storage/
+Disallow: /assets/
+
+Sitemap: https://conduongbachu.net/sitemap.xml
+Crawl-delay: 10
