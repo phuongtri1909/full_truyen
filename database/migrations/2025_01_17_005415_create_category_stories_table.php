@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('category_stories', function (Blueprint $table) {
+        Schema::create('category_story', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('story_id')->constrained()->onDelete('cascade');
             $table->unique(['category_id', 'story_id']);
             $table->timestamps();
-        });
+        }, 'ENGINE=InnoDB');
     }
 
     /**
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('category_stories');
+        Schema::dropIfExists('category_story');
     }
 };

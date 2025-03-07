@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamp('pinned_at')->nullable();
             $table->foreignId('story_id')->constrained()->onDelete('cascade');
             $table->timestamps();
-        });
+        }, 'ENGINE=InnoDB');
     }
 
     /**

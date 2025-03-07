@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('ip_address');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
-        });
+        }, 'ENGINE=InnoDB');
     }
 
     /**

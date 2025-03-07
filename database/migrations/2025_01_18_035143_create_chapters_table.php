@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('story_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
-        });
+        }, 'ENGINE=InnoDB');
     }
 
     /**
