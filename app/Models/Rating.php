@@ -10,13 +10,13 @@ class Rating extends Model
     use HasFactory;
     protected $fillable = [
         'user_id',
-        'chapter_id',
+        'story_id',
         'rating',
     ];
 
-    public function chapter()
+    public function story()
     {
-        return $this->belongsTo(Chapter::class);
+        return $this->belongsTo(Story::class);
     }
 
     public function user()

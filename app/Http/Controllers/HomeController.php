@@ -12,119 +12,125 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+
     public function index(Request $request)
     {
-        // Initialize base query
-        $query = Chapter::query();
-
-        // Visibility check based on user role
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
-            $query->where('status', 'published');
-        }
-
-        // Calculate chapter ranges starting from oldest chapters
-        $maxNumber = Chapter::max('number') ?? 0;
-        $minNumber = Chapter::min('number') ?? 0;
-        $ranges = [];
-
-        // Calculate total complete chunks
-        $totalChunks = ceil($maxNumber / 100);
-
-        // Create ranges from bottom up
-        for ($i = 1; $i <= $totalChunks; $i++) {
-            $start = min($i * 100, $maxNumber);
-            $end = max(($i - 1) * 100 + 1, $minNumber);
-            $ranges[] = [
-                'start' => $start,
-                'end' => $end
-            ];
-        }
-
-        // Reverse array to show newest chapters first
-        $ranges = array_reverse($ranges);
-
-        // Handle search
-        if ($request->search) {
-            $searchQuery = Chapter::query();
-
-            // Reapply visibility for search
-            if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
-                $searchQuery->where('status', 'published');
-            }
-
-            $search = $request->search;
-            $searchNumber = preg_replace('/[^0-9]/', '', $search);
-
-            $searchQuery->where(function ($q) use ($search, $searchNumber) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('content', 'like', "%{$search}%");
-
-                if ($searchNumber !== '') {
-                    $q->orWhere('number', $searchNumber);
-                }
-            });
-
-            $query = $searchQuery;
-        }
-        // Handle range filtering if not searching
-        else if ($request->start && $request->end) {
-            $query->whereBetween('number', [(int)$request->end, (int)$request->start]);
-        }
-        // Default to latest 100 chapters
-        else {
-            $query->where('number', '<=', $maxNumber)
-                ->where('number', '>', $maxNumber - 100);
-        }
-
-        // Apply sorting
-        $isOldFirst = filter_var($request->old_first, FILTER_VALIDATE_BOOLEAN);
-        $orderDirection = $isOldFirst ? 'asc' : 'desc';
-        $chapters = $query->orderBy('number', $orderDirection)->get();
-
-
-
-        // Get pinned comments separately
-        $pinnedComments = Comment::with(['user', 'replies.user', 'reactions'])
-            ->whereNull('reply_id')
-            ->where('is_pinned', true)
-            ->latest()
-            ->get();
-
-        // Get regular comments with pagination
-        $regularComments = Comment::with(['user', 'replies.user', 'reactions'])
-            ->whereNull('reply_id')
-            ->where('is_pinned', false)  // Explicitly exclude pinned comments
-            ->latest()
-            ->paginate(10);
-
-        // Handle AJAX requests
-        if ($request->ajax()) {
-            if ($request->type === 'comments') {
-                // Only include pinned comments on first page
-                $showPinned = $request->page == 1;
-                
-                return response()->json([
-                    'html' => view('components.comments-list', [
-                        'pinnedComments' => $showPinned ? $pinnedComments : collect([]),
-                        'regularComments' => $regularComments
-                    ])->render(),
-                    'hasMore' => $regularComments->hasMorePages()
-                ]);
-            }
-
-            return response()->json([
-                'html' => view('components.chapter-items', compact('chapters'))->render()
-            ]);
-        }
-
-         // Return view with all data
-        return view('pages.home', compact(
-            'chapters',
-            'pinnedComments',
-            'regularComments',
-            'ranges'
-        ));
+       return view('pages.home');
     }
+
+    // public function index(Request $request)
+    // {
+    //     // Initialize base query
+    //     $query = Chapter::query();
+
+    //     // Visibility check based on user role
+    //     if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
+    //         $query->where('status', 'published');
+    //     }
+
+    //     // Calculate chapter ranges starting from oldest chapters
+    //     $maxNumber = Chapter::max('number') ?? 0;
+    //     $minNumber = Chapter::min('number') ?? 0;
+    //     $ranges = [];
+
+    //     // Calculate total complete chunks
+    //     $totalChunks = ceil($maxNumber / 100);
+
+    //     // Create ranges from bottom up
+    //     for ($i = 1; $i <= $totalChunks; $i++) {
+    //         $start = min($i * 100, $maxNumber);
+    //         $end = max(($i - 1) * 100 + 1, $minNumber);
+    //         $ranges[] = [
+    //             'start' => $start,
+    //             'end' => $end
+    //         ];
+    //     }
+
+    //     // Reverse array to show newest chapters first
+    //     $ranges = array_reverse($ranges);
+
+    //     // Handle search
+    //     if ($request->search) {
+    //         $searchQuery = Chapter::query();
+
+    //         // Reapply visibility for search
+    //         if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
+    //             $searchQuery->where('status', 'published');
+    //         }
+
+    //         $search = $request->search;
+    //         $searchNumber = preg_replace('/[^0-9]/', '', $search);
+
+    //         $searchQuery->where(function ($q) use ($search, $searchNumber) {
+    //             $q->where('title', 'like', "%{$search}%")
+    //                 ->orWhere('content', 'like', "%{$search}%");
+
+    //             if ($searchNumber !== '') {
+    //                 $q->orWhere('number', $searchNumber);
+    //             }
+    //         });
+
+    //         $query = $searchQuery;
+    //     }
+    //     // Handle range filtering if not searching
+    //     else if ($request->start && $request->end) {
+    //         $query->whereBetween('number', [(int)$request->end, (int)$request->start]);
+    //     }
+    //     // Default to latest 100 chapters
+    //     else {
+    //         $query->where('number', '<=', $maxNumber)
+    //             ->where('number', '>', $maxNumber - 100);
+    //     }
+
+    //     // Apply sorting
+    //     $isOldFirst = filter_var($request->old_first, FILTER_VALIDATE_BOOLEAN);
+    //     $orderDirection = $isOldFirst ? 'asc' : 'desc';
+    //     $chapters = $query->orderBy('number', $orderDirection)->get();
+
+
+
+    //     // Get pinned comments separately
+    //     $pinnedComments = Comment::with(['user', 'replies.user', 'reactions'])
+    //         ->whereNull('reply_id')
+    //         ->where('is_pinned', true)
+    //         ->latest()
+    //         ->get();
+
+    //     // Get regular comments with pagination
+    //     $regularComments = Comment::with(['user', 'replies.user', 'reactions'])
+    //         ->whereNull('reply_id')
+    //         ->where('is_pinned', false)  // Explicitly exclude pinned comments
+    //         ->latest()
+    //         ->paginate(10);
+
+    //     // Handle AJAX requests
+    //     if ($request->ajax()) {
+    //         if ($request->type === 'comments') {
+    //             // Only include pinned comments on first page
+    //             $showPinned = $request->page == 1;
+                
+    //             return response()->json([
+    //                 'html' => view('components.comments-list', [
+    //                     'pinnedComments' => $showPinned ? $pinnedComments : collect([]),
+    //                     'regularComments' => $regularComments
+    //                 ])->render(),
+    //                 'hasMore' => $regularComments->hasMorePages()
+    //             ]);
+    //         }
+
+    //         return response()->json([
+    //             'html' => view('components.chapter-items', compact('chapters'))->render()
+    //         ]);
+    //     }
+
+    //      // Return view with all data
+    //     return view('pages.home', compact(
+    //         'chapters',
+    //         'pinnedComments',
+    //         'regularComments',
+    //         'ranges'
+    //     ));
+    // }
 
     public function chapter($slug)
     {

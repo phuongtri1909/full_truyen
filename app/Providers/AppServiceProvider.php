@@ -25,21 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Calculate stats
-        $stats = [
-            'total_chapters' => Chapter::where('status', 'published')->count(),
-            'total_views' => Chapter::sum('views'),
-            'ratings' => [
-                'count' => User::whereNotNull('rating')->count(),
-                'average' => number_format(User::whereNotNull('rating')->avg('rating') ?? 0, 1)
-            ]
-        ];
-
-        // Get story status
-        $status = Status::first();
-
-        // Share with all views
-        View::share('stats', $stats);
-        View::share('status', $status);
+       
     }
 }

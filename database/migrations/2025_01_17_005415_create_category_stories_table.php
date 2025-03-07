@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('statuses', function (Blueprint $table) {
+        Schema::create('category_stories', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', ['done', 'writing'])->default('writing');
+            $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('story_id')->constrained()->onDelete('cascade');
+            $table->unique(['category_id', 'story_id']);
             $table->timestamps();
         });
     }
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('statuses');
+        Schema::dropIfExists('category_stories');
     }
 };

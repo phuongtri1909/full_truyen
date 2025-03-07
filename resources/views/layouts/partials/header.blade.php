@@ -6,42 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>@yield('title','Trang chủ - Con Đường Bá Chủ')</title>
-    <meta name="description" content="@yield('description', 'Là thủ khoa với điểm thi đại học cao nhất toàn quốc, lại trở thành một phế vật ở thế giới tu chân tàn khốc, nơi sức mạnh chính là luật lệ, cá lớn nuốt cá bé, kẻ yếu chỉ như con kiến không có tiếng nói, bị người người giẫm đạp.
-    Hai mắt mù loà, thân phận hèn kém, vạn địch vây quanh...thiếu niên trong tuyệt cảnh thức tỉnh Bá Chủ Hệ Thống, từ đó đặt chân vào lằn ranh sinh tử trên con đường tu chân rực rỡ sắc màu.
-    Vạn tộc tung hoành, thiên kiêu như nấm, giai nhân làm bạn, khoái ý ân cừu, hành tẩu giang hồ, nhất thống thiên địa...viết nên một khúc truyền kỳ bất hủ. Con Đường Bá Chủ là truyện Huyền Huyễn, Tiên Hiệp... ')">
-    <meta name="keywords" content="@yield('keywords', 'con duong ba chu,conduongbachu,Con Đường Bá Chủ, truyện tranh online, đọc truyện tranh, đọc truyện online, CDBC')">
+    <title>@yield('title', 'Trang chủ')</title>
+    <meta name="description" content="@yield('description', '')">
+    <meta name="keywords" content="@yield('keywords', '')">
     <meta name="robots" content="index, follow">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="@yield('title','Trang chủ - Con Đường Bá Chủ')">
-    <meta property="og:description" content="@yield('decription','Là thủ khoa với điểm thi đại học cao nhất toàn quốc, lại trở thành một phế vật ở thế giới tu chân tàn khốc, nơi sức mạnh chính là luật lệ, cá lớn nuốt cá bé, kẻ yếu chỉ như con kiến không có tiếng nói, bị người người giẫm đạp.
-    Hai mắt mù loà, thân phận hèn kém, vạn địch vây quanh...thiếu niên trong tuyệt cảnh thức tỉnh Bá Chủ Hệ Thống, từ đó đặt chân vào lằn ranh sinh tử trên con đường tu chân rực rỡ sắc màu.
-    Vạn tộc tung hoành, thiên kiêu như nấm, giai nhân làm bạn, khoái ý ân cừu, hành tẩu giang hồ, nhất thống thiên địa...viết nên một khúc truyền kỳ bất hủ. Con Đường Bá Chủ là truyện Huyền Huyễn, Tiên Hiệp... ')">
-    <meta property="og:url" content="{{url()->full()}}">
-    <meta property="og:site_name" content="Con Đường Bá Chủ">
-    <meta property="og:image" content="{{ asset('assets/images/logo/logo_conduongbachu.webp') }}">
-    <meta property="og:image:secure_url" content="{{ asset('assets/images/logo/logo_conduongbachu.webp') }}">
+    <meta property="og:title" content="@yield('title', 'Trang chủ')">
+    <meta property="og:description" content="@yield('decription', '')">
+    <meta property="og:url" content="{{ url()->full() }}">
+    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:image" content="{{ asset('assets/images/logo/logo_site.webp') }}">
+    <meta property="og:image:secure_url" content="{{ asset('assets/images/logo/logo_site.webp') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="@yield('title','Trang chủ - Con Đường Bá Chủ')">
+    <meta property="og:image:alt" content="@yield('title', 'Trang chủ')">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title','Trang chủ - Con Đường Bá Chủ')">
-    <meta name="twitter:description" content="@yield('decription','Là thủ khoa với điểm thi đại học cao nhất toàn quốc, lại trở thành một phế vật ở thế giới tu chân tàn khốc, nơi sức mạnh chính là luật lệ, cá lớn nuốt cá bé, kẻ yếu chỉ như con kiến không có tiếng nói, bị người người giẫm đạp.
-    Hai mắt mù loà, thân phận hèn kém, vạn địch vây quanh...thiếu niên trong tuyệt cảnh thức tỉnh Bá Chủ Hệ Thống, từ đó đặt chân vào lằn ranh sinh tử trên con đường tu chân rực rỡ sắc màu.
-    Vạn tộc tung hoành, thiên kiêu như nấm, giai nhân làm bạn, khoái ý ân cừu, hành tẩu giang hồ, nhất thống thiên địa...viết nên một khúc truyền kỳ bất hủ. Con Đường Bá Chủ là truyện Huyền Huyễn, Tiên Hiệp... ')">
-    <meta name="twitter:image" content="{{ asset('assets/images/logo/logo_conduongbachu.webp') }}">
-    <meta name="twitter:image:alt" content="@yield('title','Trang chủ - Con Đường Bá Chủ')">
-    <link rel="icon" href="{{asset('assets/images/logo/favicon.ico')}}" type="image/png/x-icon">
+    <meta name="twitter:title" content="@yield('title', 'Trang chủ')">
+    <meta name="twitter:description" content="@yield('decription', '')">
+    <meta name="twitter:image" content="{{ asset('assets/images/logo/logo_site.webp') }}">
+    <meta name="twitter:image:alt" content="@yield('title', 'Trang chủ')">
+    <link rel="icon" href="{{ asset('assets/images/logo/favicon.ico') }}" type="image/png/x-icon">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.ico') }}" type="image/x-icon">
-    <meta name="google-site-verification" content="1KqxZNHaDT4KmKEz-TSyKK3GSE3zI47khTAwE5fR5AQ" />
+    <meta name="google-site-verification" content="" />
 
     <script type="application/ld+json">
         {
           "@context": "https://schema.org",
           "@type": "Organization",
           "url": "{{ url('/') }}",
-          "logo": "{{ asset('assets/images/logo/logo_conduongbachu.webp')}}"
+          "logo": "{{ asset('assets/images/logo/logo_site.webp')}}"
         }
     </script>
 
@@ -64,45 +59,44 @@
 <body>
     <header class="container">
         <nav
-            class="navbar navbar-expand-lg fixed-top transition-header {{ !request()->routeIs('home') ? 'chapter-header' : '' }}">
+            class="navbar navbar-expand-lg fixed-top transition-header chapter-header scrolled bg-white shadow-sm py-2">
             <div class="container">
-                <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center w-100">
                     <!-- Logo -->
                     <a class="navbar-brand p-0" href="{{ route('home') }}">
-                        <img height="50" src="{{ asset('assets/images/logo/logo_conduongbachu.webp') }}"
-                            alt="logo">
+                        <img height="50" src="{{ asset('assets/images/logo/logo_site.webp') }}" alt="logo">
                     </a>
 
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center w-100 justify-content-between flex-lg-row">
                         <!-- Desktop Menu - Visible on lg screens and up -->
                         <div class="list-menu d-none d-lg-block">
                             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-
                                 <li class="nav-item">
-                                    <a href="javascript:void(0)" onclick="scrollToAllChapters(event)"
-                                        class="text-dark nav-link">
-                                        CHƯƠNG TRUYỆN
+                                    <a class="text-dark nav-link" href="#">
+                                        <i class="fa-solid fa-layer-group fa-lg"></i> Thể loại
                                     </a>
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="text-dark nav-link" href="javascript:void(0)"
-                                        onclick="scrollToComments(event)">
-                                        BÌNH LUẬN
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="text-dark  nav-link" href="javascript:void(0)"
-                                        onclick="scrollToDonate(event)">
-                                        DONATE
+                                    <a class="text-dark nav-link" href="#">
+                                        <i class="fa-solid fa-address-card fa-lg"></i> Liên hệ
                                     </a>
                                 </li>
                             </ul>
                         </div>
 
-                        <a class="text-dark nav-link" href="{{ route('login') }}">
+                        <div>
+                            <div class="search-container d-flex align-items-center">
+                                <div class="position-relative">
+                                    <input type="text" class="form-control search-input" placeholder="Tìm kiếm truyện...">
+                                    <button class="btn search-btn">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a class="text-dark nav-link d-none d-lg-block" href="{{ route('login') }}">
 
                             @auth
                                 <div class="dropdown">
@@ -118,20 +112,20 @@
                                         @if (auth()->user()->role === 'admin' || auth()->user()->role === 'mod')
                                             <li>
                                                 <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
-                                                    <i class="fas fa-tachometer-alt me-2"></i>Quản trị
+                                                    <i class="fas fa-tachometer-alt me-2"></i> Quản trị
                                                 </a>
                                             </li>
                                         @endif
 
                                         <li>
                                             <a class="dropdown-item" href="{{ route('profile') }}">
-                                                <i class="fas fa-user me-2"></i>Trang cá nhân
+                                                <i class="fas fa-user me-2"></i> Trang cá nhân
                                             </a>
                                         </li>
 
                                         <li>
                                             <a class="dropdown-item" href="{{ route('logout') }}">
-                                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                                                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
                                             </a>
                                         </li>
                                     </ul>
@@ -141,7 +135,8 @@
                                     @csrf
                                 </form>
                             @else
-                                <a href="{{ route('login') }}" class="btn">ĐĂNG NHẬP</a>
+                                <a href="{{ route('login') }}" class="btn d-none d-lg-block"> <i
+                                        class="fa-regular fa-circle-user fa-lg"></i> Đăng nhập</a>
                             @endauth
                         </a>
 
@@ -162,46 +157,68 @@
             <div class="offcanvas-header">
 
                 <a class="navbar-brand" href="{{ route('home') }}">
-                    <img height="50" src="{{ asset('assets/images/logo/logo_conduongbachu.webp') }}" alt="logo">
+                    <img height="50" src="{{ asset('assets/images/logo/logo_site.webp') }}" alt="logo">
                 </a>
 
-                {{-- <a href="{{ route('home') }}" class="text-decoration-none text-dark fw-bold">
-                    <fa class="fa-solid fa-home fa-xl"></fa> TRANG CHỦ
-                </a> --}}
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
             <div class="offcanvas-body">
-
                 <!-- Navigation Links -->
                 <div class="mobile-section">
                     <div class="mobile-nav-links d-flex flex-column">
 
-
-                        <a href="javascript:void(0)" onclick="scrollToAllChapters(event)"class="mobile-menu-item"
-                            data-bs-dismiss="offcanvas">
-                            <span class="fw-bold">CHƯƠNG TRUYỆN</span>
+                        <a href="" class="mobile-menu-item">
+                            <i class="fa-solid fa-layer-group fa-lg me-2"></i> Thể loại
                         </a>
 
                         <hr class="divider my-3">
 
-                        <a href="javascript:void(0)" onclick="scrollToComments(event)" class="mobile-menu-item"
-                            data-bs-dismiss="offcanvas">
-                            <span class="fw-bold">BÌNH LUẬN</span>
+                        <a href="" class="mobile-menu-item ">
+                            <i class="fa-solid fa-address-card fa-lg me-2"></i> Liên hệ
                         </a>
 
                         <hr class="divider my-3">
 
-                        <a href="javascript:void(0)" onclick="scrollToDonate(event)" class="mobile-menu-item"
-                            data-bs-dismiss="offcanvas">
-                            <span class="fw-bold">DONATE</span>
-                        </a>
+                        <a class="mobile-menu-item text-dark nav-link" href="{{ route('login') }}">
+                            @auth
+                                <div class="dropdown">
+                                    <a href="#"
+                                        class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark"
+                                        data-bs-toggle="dropdown">
+                                        <img src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
+                                            class="rounded-circle" width="40" height="40" alt="avatar"
+                                            style="object-fit: cover;">
+                                    </a>
 
+                                    <ul class="dropdown-menu dropdown-menu-end animate slideIn">
+                                        @if (auth()->user()->role === 'admin' || auth()->user()->role === 'mod')
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                                    <i class="fas fa-tachometer-alt me-2 fa-lg"></i> Quản trị
+                                                </a>
+                                            </li>
+                                        @endif
+
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('profile') }}">
+                                                <i class="fas fa-user me-2 fa-lg"></i> Trang cá nhân
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('logout') }}">
+                                                <i class="fas fa-sign-out-alt me-2 fa-lg"></i> Đăng xuất
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            @else
+                                <a href="{{ route('login') }}" class=" mobile-menu-item"> <i
+                                        class="fa-regular fa-circle-user fa-lg me-2"></i> Đăng nhập</a>
+                            @endauth
+                        </a>
                     </div>
                 </div>
-
-                <!-- Auth Section -->
-
-
             </div>
         </div>
     </header>
@@ -210,126 +227,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             const header = document.querySelector('.transition-header');
             const scrollThreshold = 50;
-            const isHome = window.location.pathname === '/';
 
-            function updateHeader() {
-                if (isHome) {
-                    const headerHeight = header.offsetHeight;
-                    if (window.scrollY > headerHeight) {
-                        header.classList.add('scrolled');
-                        header.style.display = 'block';
-                    } else {
-                        header.classList.remove('scrolled');
-                        header.style.display = 'none';
-                    }
+            function handleScroll() {
+                if (window.scrollY > scrollThreshold) {
+                    header.classList.add('scrolled');
                 } else {
-                    if (window.scrollY > scrollThreshold) {
-                        header.classList.add('scrolled');
-                    } else {
-                        header.classList.remove('scrolled');
-                    }
+                    header.classList.remove('scrolled');
                 }
             }
 
-            updateHeader();
-            window.addEventListener('scroll', updateHeader);
-        });
-    </script>
+            // Listen for scroll events
+            window.addEventListener('scroll', handleScroll);
 
-    <script>
-        function scrollToComments(event) {
-            event.preventDefault();
-            const isHome = window.location.pathname === '{{ route('home') }}';
-
-            if (isHome) {
-                // If on home page, smooth scroll to comments
-                const commentsSection = document.getElementById('comments');
-                const headerHeight = document.querySelector('.transition-header').offsetHeight;
-                const targetPosition = commentsSection.offsetTop - headerHeight - 20;
-
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            } else {
-                // If on different page, redirect to home with hash
-                window.location.href = '{{ route('home') }}#comments';
-            }
-        }
-
-        // Handle hash in URL when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.location.hash === '#comments') {
-                setTimeout(() => {
-                    const commentsSection = document.getElementById('comments');
-                    const headerHeight = document.querySelector('.transition-header').offsetHeight;
-                    const targetPosition = commentsSection.offsetTop - headerHeight - 20;
-
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }, 100);
-            }
-        });
-    </script>
-
-    {{-- scrollDonate --}}
-    <script>
-        function scrollToDonate(event) {
-            event.preventDefault();
-            const donateSection = document.getElementById('donate');
-
-            if (donateSection) {
-                const headerHeight = document.querySelector('.transition-header')?.offsetHeight || 0;
-                const targetPosition = donateSection.offsetTop - headerHeight - 20;
-
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            }
-        }
-    </script>
-
-    <!-- Add scroll function -->
-    <script>
-        function scrollToAllChapters(event) {
-            event.preventDefault();
-            const isHome = window.location.pathname === '/';
-
-            if (isHome) {
-                const allChaptersSection = document.getElementById('all-chapter');
-                if (allChaptersSection) {
-                    const headerHeight = document.querySelector('.transition-header')?.offsetHeight || 0;
-                    const targetPosition = allChaptersSection.offsetTop - headerHeight - 20;
-
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            } else {
-                window.location.href = '{{ route('home') }}#all-chapter';
-            }
-        }
-
-        // Handle hash in URL
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.location.hash === '#all-chapter') {
-                setTimeout(() => {
-                    const allChaptersSection = document.getElementById('all-chapter');
-                    if (allChaptersSection) {
-                        const headerHeight = document.querySelector('.transition-header')?.offsetHeight ||
-                            0;
-                        const targetPosition = allChaptersSection.offsetTop - headerHeight - 20;
-
-                        window.scrollTo({
-                            top: targetPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 300);
-            }
+            // Initial check
+            handleScroll();
         });
     </script>

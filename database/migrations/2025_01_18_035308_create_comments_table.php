@@ -15,7 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->text('comment');
-            $table->foreignId('reply_id')->nullable()->constrained('comments')->onDelete('set null');
+            $table->unsignedBigInteger('reply_id')->nullable();
+            $table->foreign('reply_id')
+                ->references('id')
+                ->on('comments')
+                ->onDelete('cascade');
+            $table->integer('level')->default(0);
+            $table->boolean('is_pinned')->default(false);
+            $table->timestamp('pinned_at')->nullable();
+            $table->foreignId('story_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ratings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('chapter_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('story_id')->constrained()->onDelete('cascade');
             $table->enum('rating', [1, 2, 3, 4, 5]);
             $table->timestamps();
         });

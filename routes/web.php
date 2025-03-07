@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\AuthController;
@@ -12,7 +13,9 @@ use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialsController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentReactionController;
+use App\Http\Controllers\StoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,15 +27,6 @@ use App\Http\Controllers\CommentReactionController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::get('/clear-cache', function () {
-    Artisan::call('cache:clear');
-    Artisan::call('config:clear');
-    Artisan::call('route:clear');
-    Artisan::call('view:clear');
-    return "Cache is cleared";
-})->name('clear.cache');
-
-
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::group(['middleware' => 'check.ip.ban'], function () {
@@ -52,6 +46,18 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
         Route::post('update-password', [UserController::class, 'updatePassword'])->name('update.password');
 
         Route::group(['middleware' => 'auth'], function () {
+            Route::middleware(['check.ban:ban_comment'])->group(function () {
+                Route::post('comment/store', [CommentController::class, 'storeClient'])->name('comment.store.client');
+            });
+
+            Route::middleware(['check.ban:ban_rate'])->group(function () {
+                Route::post('/ratings', [RatingController::class, 'storeClient'])->name('ratings.store');
+                Route::get('/ratings', function () {
+                    abort(404);
+                });
+            });
+
+            Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
             Route::group(['middleware' => 'role.admin'], function () {
                 Route::post('/comments/{comment}/pin', [CommentController::class, 'togglePin'])->name('comments.pin');
@@ -73,6 +79,10 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
                     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
                     Route::PATCH('users/{user}', [UserController::class, 'update'])->name('users.update');
 
+
+                    Route::resource('categories', CategoryController::class);
+                    Route::resource('stories', StoryController::class);
+
                     Route::resource('chapters', ChapterController::class);
 
                     Route::get('comments', [CommentController::class, 'index'])->name('comments.index');
@@ -82,18 +92,7 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
                 });
             });
 
-            Route::middleware(['check.ban:ban_comment'])->group(function () {
-                Route::post('comment/store', [CommentController::class, 'storeClient'])->name('comment.store.client');
-            });
-
-            Route::middleware(['check.ban:ban_rate'])->group(function () {
-                Route::post('/ratings', [RatingController::class, 'storeClient'])->name('ratings.store');
-                Route::get('/ratings', function () {
-                    abort(404);
-                });
-            });
-
-            Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+           
         });
 
 

@@ -42,7 +42,7 @@
                                                     <div class="text-center mb-4">
                                                         <a href="{{ route('home') }}">
                                                             <img class="logo_conduongbachu"
-                                                                src="{{ asset('assets/images/logo/logo_conduongbachu.webp') }}"
+                                                                src="{{ asset('assets/images/logo/logo_site.webp') }}"
                                                                 alt="logo_conduongbachu">
                                                         </a>
                                                     </div>

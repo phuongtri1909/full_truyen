@@ -1,70 +1,28 @@
-<footer id="donate">
+<footer id="donate" class="mt-80">
     <div class="bg-dark bg-gradient">
         <div class="container ">
             <div class="row py-5 text-white g-3">
-                <div class="col-12 col-md-6">
-                    <h5 class="mb-4">CON ĐƯỜNG BÁ CHỦ</h5>
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <div class="card">
-                                <div class="card-body d-flex align-items-center justify-content-center" style="height: 150px;">
-                                    <a target="_blank" href="https://www.youtube.com/channel/UClUgvbX62pg2XFPnRWaiSgQ"
-                                        class="text-decoration-none text-dark text-center">
-                                        <h6 class="info-title">YOUTUBE</h6>
-                                        <img src="{{ asset('assets/images/ytb_logo.png') }}" alt="logo_ytb" 
-                                            class="img-fluid" >
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="card">
-                                <div class="card-body d-flex align-items-center justify-content-center" style="height: 150px;">
-                                    <a target="_blank" href="https://www.facebook.com/groups/conduongbachu.akayhau/"
-                                        class="text-decoration-none text-dark text-center">
-                                        <h6 class="info-title">GROUP FACEBOOK</h6>
-                                        <img src="{{ asset('assets/images/Facebook_Logo.png') }}" alt="logo_fb" 
-                                            class="img-fluid" style="height: 70px; object-fit: contain;">
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                 
-                    </div>
+                <div class="col-12 col-md-5">
+                    <img height="50" src="{{ asset('assets/images/logo/logo_site.webp') }}" alt="logo">
+                    <p class="mt-2">Đọc truyện online, đọc truyện chữ, truyện hay. Website luôn cập nhật những bộ truyện mới thuộc các thể loại đặc sắc như truyện tiên hiệp, truyện kiếm hiệp, hay truyện ngôn tình một cách nhanh nhất. Hỗ trợ mọi thiết bị như di động và máy tính bảng.</p>
                     
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-7">
                     <div class="footer-section">
-                        <h5 class="text-white mb-3">ỦNG HỘ TÁC GIẢ AkayHau</h5>
-                        <div class="donation-info">
-                            <ul class="list-unstyled ">
-                                <li class="mb-2 d-flex flex-column align-items-start">
-                                    <div class="mb-3">
-                                        <i class="fas fa-university me-2"></i>
-                                        <span class="fw-bold">Techcombank:</span>
-                                    </div>
-                                    <img src="{{ asset('assets/images/techcombank.jpg') }}" alt="banking-techcombank" class="" height="250">
-                                </li>
-                                
-                                <li class="mb-2">
-                                    <i class="fas fa-university me-2"></i>
-                                    <span class="fw-bold">Agribank:</span>
-                                    1809205083252 (Cờ Đỏ Cần Thơ II) - NGUYEN PHUOC HAU
-                                </li>
-                                
-                                <li class="mb-2">
-                                    <i class="fas fa-wallet me-2"></i>
-                                    <span class="fw-bold">Momo/ViettelPay:</span>
-                                    0942973261
-                                </li>
-                                
-                                <li class="mb-2">
-                                    <i class="fab fa-paypal me-2"></i>
-                                    <span class="fw-bold">Paypal:</span>
-                                    nguyenphuochau12t2@gmail.com
-                                </li>
-                            </ul>
+                        <h5 class="text-white mb-3">Thể Loại Truyện</h5>
+                        <div class="footer-categories">
+                            <a href="#" class="footer-category">Tiên Hiệp</a>
+                            <a href="#" class="footer-category">Kiếm Hiệp</a>
+                            <a href="#" class="footer-category">Ngôn Tình</a>
+                            <a href="#" class="footer-category">Đô Thị</a>
+                            <a href="#" class="footer-category">Huyền Huyễn</a>
+                            <a href="#" class="footer-category">Xuyên Không</a>
+                            <a href="#" class="footer-category">Trọng Sinh</a>
+                            <a href="#" class="footer-category">Dị Giới</a>
+                            <a href="#" class="footer-category">Võng Du</a>
+                            <a href="#" class="footer-category">Quan Trường</a>
+                            <a href="#" class="footer-category">Light Novel</a>
+                            <a href="#" class="footer-category">Fanfiction</a>
                         </div>
                     </div>
                 </div>

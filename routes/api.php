@@ -18,8 +18,3 @@ use App\Http\Controllers\API\ChapterController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::middleware('chapter.api')->group(function () {
-    Route::get('/chapters/today', [ChapterController::class, 'getTodayChapters']);
-    Route::get('/chapters/range', [ChapterController::class, 'getChaptersByRange']);
-});

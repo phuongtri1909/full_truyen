@@ -2,23 +2,19 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class Chapter extends Model
+class Story extends Model
 {
     use HasFactory;
-
     protected $fillable = [
+        'user_id',
         'title',
         'slug',
-        'content',
-        'number',
-        'views',
+        'description',
         'status',
-        'story_id',
-        'user_id',
+        'cover',
     ];
 
     public function user()
@@ -26,14 +22,14 @@ class Chapter extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function ratings()
+    public function chapters()
     {
-        return $this->hasMany(Rating::class);
+        return $this->hasMany(Chapter::class);
     }
 
-    public function story()
+    public function categories()
     {
-        return $this->belongsTo(Story::class);
+        return $this->belongsToMany(Category::class);
     }
 
     public function scopePublished($query)
@@ -46,5 +42,10 @@ class Chapter extends Model
         return $query->where('status', 'draft');
     }
 
+    public function scopePopular($query)
+    {
+        return $query->withCount('chapters')->orderByDesc('chapters_count');
+    }
 
+    
 }

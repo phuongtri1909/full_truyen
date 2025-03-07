@@ -1,6 +1,6 @@
 @include('layouts.partials.header')
 
-<div class="">
+<div class="mt-80">
     @push('scripts')
         <script>
             showSavedToast();

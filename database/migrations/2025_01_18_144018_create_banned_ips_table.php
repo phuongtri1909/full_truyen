@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('banned_ips', function (Blueprint $table) {
             $table->id();
             $table->string('ip_address');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

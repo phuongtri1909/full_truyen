@@ -16,7 +16,8 @@ class Comment extends Model
         'reply_id',
         'level',
         'is_pinned',
-        'pinned_at'
+        'pinned_at',
+        'story_id',
     ];
 
     public function user()
@@ -61,5 +62,9 @@ class Comment extends Model
     {
         return $query->where('is_pinned', true)->orderBy('pinned_at', 'desc');
     }
-  
+
+    public function story()
+    {
+        return $this->belongsTo(Story::class);
+    }
 }

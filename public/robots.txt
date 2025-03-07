@@ -5,7 +5,7 @@ Allow: /search
 Allow: /login
 Allow: /register
 Allow: /admin/delete-comments/
-Allow: /assets/images/logo/logo_conduongbachu.webp
+Allow: /assets/images/logo/logo_site.webp
 
 Disallow: /admin/
 Disallow: /password/
