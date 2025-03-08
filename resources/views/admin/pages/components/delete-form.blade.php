@@ -1,8 +1,8 @@
 <form id="formDelete{{ $id }}" method="post" action="{{ $route }}">
     @csrf
     @method('DELETE')
-    <span title="Xóa" type="button" class=" btn_delete">
-        <i class="fa-solid fa-trash"></i>
+    <span title="Xóa" type="button" class="btn btn-link btn_delete text-danger text-gradient p-1 mb-0">
+        <i class="far fa-trash-alt me-2"></i>Xóa
     </span>
 </form>
 

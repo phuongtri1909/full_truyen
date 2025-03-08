@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('description');
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->string('cover');
+            $table->string('cover_medium');
+            $table->string('cover_thumbnail');
             $table->timestamps();
         }, 'ENGINE=InnoDB');
     }

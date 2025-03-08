@@ -7,45 +7,49 @@
                 <div class="card-header pb-0">
                     <div class="d-flex flex-row justify-content-between">
                         <div>
-                            <h5 class="mb-0">Danh sách chương</h5>
+                            <h5 class="mb-0">
+                               
+                                Danh sách chương truyện: {{ $story->title }}
+                                
+                            </h5>
                             <p class="text-sm mb-0">
                                 Tổng số: {{ $totalChapters }} chương
                                 ({{ $publishedChapters }} hiển thị / {{ $draftChapters }} nháp)
                             </p>
                         </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="statusToggle"
-                                {{ $status->status === 'done' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="statusToggle">
-                                <span
-                                    class="badge-status badge bg-{{ $status->status === 'done' ? 'success' : 'warning' }}">
-                                    {{ $status->status === 'done' ? 'Hoàn thành' : 'Đang viết' }}
-                                </span>
-                            </label>
-                        </div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-3">
-                        <form method="GET" class="d-flex">
+                        <form method="GET" class="d-flex gap-2">
+                            <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                                <option value="">- Trạng thái -</option>
+                                <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Hiển thị</option>
+                                <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Nháp</option>
+                            </select>
+
                             <div class="input-group input-group-sm">
-                                <input type="text" class="form-control w-auto" name="search" placeholder="Tìm kiếm..."
-                                    aria-label="Tìm kiếm" aria-describedby="inputGroup-sizing-sm">
-                                <button class="btn bg-gradient-primary btn-sm px-2 mb-0" type="submit" id="button-addon2">
-                                    <i class="fa-solid fa-search"></i>
+                                <input type="text" class="form-control" name="search" 
+                                       value="{{ request('search') }}" placeholder="Tìm kiếm...">
+                                <button class="btn bg-gradient-primary btn-sm px-2 mb-0" type="submit">
+                                    <i class="fas fa-search"></i>
                                 </button>
                             </div>
-
                         </form>
 
-                        <a href="{{ route('chapters.create') }}" class="btn bg-gradient-primary btn-sm mb-0 px-2"
-                            type="button">
-                            <i class="fa-solid fa-plus"></i> Thêm chương
-                        </a>
+                        <div>
+
+                            <a href="{{ route('stories.index') }}" class="btn bg-gradient-secondary btn-sm mb-0 me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </a>
+                            <a href="{{ route('stories.chapters.create', $story) }}" class="btn bg-gradient-primary btn-sm mb-0">
+                                <i class="fas fa-plus me-2"></i>Thêm chương mới
+                            </a>
+
+                        </div>
                     </div>
-
                 </div>
-                <div class="card-body px-0 pt-0 pb-2">
 
+                <div class="card-body px-0 pt-0 pb-2">
                     @include('admin.pages.components.success-error')
 
                     <div class="table-responsive p-0">
@@ -82,57 +86,56 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($chapters as $item)
+                                @forelse($chapters as $chapter)
                                     <tr>
                                         <td class="ps-4">
-                                            <p class="text-xs font-weight-bold mb-0">Chương {{ $item->number }}</p>
+                                            <p class="text-xs font-weight-bold mb-0">Chương {{ $chapter->number }}</p>
                                         </td>
-
-                                        <td>
-                                            <p class="text-xs font-weight-bold mb-0"> <a target="_blank"
-                                                    href="{{ route('chapter', $item->slug) }}">{{ $item->title }}</a></p>
-                                        </td>
-
-                                        <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ $item->content }}</p>
-                                        </td>
-
-                                        <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ $item->views }}</p>
-                                        </td>
-
                                         <td>
                                             <p class="text-xs font-weight-bold mb-0">
-                                                @if ($item->status == 'draft')
-                                                    <span class="badge bg-gradient-warning">Viết nháp</span>
-                                                @else
-                                                    <span class="badge bg-gradient-success">Hiển thị</span>
-                                                @endif
+                                                {{ $chapter->title }}
                                             </p>
                                         </td>
-
                                         <td>
-                                            <p class="text-xs font-weight-bold mb-0">{{ $item->created_at }}</p>
+                                            <p class="text-xs text-truncate" style="max-width: 200px;">
+                                                {{ Str::limit($chapter->content, 50) }}
+                                            </p>
                                         </td>
-
-                                        <td class="text-center">
-                                            <a href="{{ route('chapters.edit', $item->id) }}" class="mx-3"
-                                                title="Sửa">
-                                                <i class="fa-solid fa-pencil"></i>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">{{ $chapter->views ?? 0 }}</p>
+                                        </td>
+                                        <td>
+                                            <span
+                                                class="badge badge-sm bg-gradient-{{ $chapter->status === 'published' ? 'success' : 'warning' }}">
+                                                {{ $chapter->status === 'published' ? 'Hiển thị' : 'Nháp' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <p class="text-xs font-weight-bold mb-0">
+                                                {{ $chapter->created_at->format('d/m/Y H:i') }}
+                                            </p>
+                                        </td>
+                                        <td class="text-center d-flex flex-column">
+                                            <a href="{{ route('stories.chapters.edit', ['story' => $story, 'chapter' => $chapter]) }}" 
+                                               class="btn btn-link text-dark px-3 mb-0">
+                                                <i class="fas fa-pencil-alt text-dark me-2"></i>Sửa
                                             </a>
-
                                             @include('admin.pages.components.delete-form', [
-                                                'id' => $item->id,
-                                                'route' => route('chapters.destroy', $item->id),
+                                                'id' => $chapter->id,
+                                                'route' => route('stories.chapters.destroy', ['story' => $story, 'chapter' => $chapter])
                                             ])
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">Chưa có chương nào</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
-
+                    </div>
+                    <div class="px-4 pt-4">
                         <x-pagination :paginator="$chapters" />
-
                     </div>
                 </div>
             </div>
@@ -167,7 +170,7 @@
                     },
                     error: function() {
                         toggle.prop('checked', !toggle.prop(
-                        'checked')); // Revert checkbox state
+                            'checked')); // Revert checkbox state
                         showToast('Có lỗi xảy ra', 'error');
                     }
                 });

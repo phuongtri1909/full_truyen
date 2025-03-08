@@ -1,16 +1,15 @@
 @include('layouts.partials.header')
 
-<div class="mt-80">
-    @push('scripts')
-        <script>
-            showSavedToast();
-        </script>
-    @endpush
-    @include('components.toast')
-    @include('components.toast-main')
-    
-    @yield('content')
-    @include('components.top_button')
-</div>
+<body data-auth="{{ auth()->check() ? 'true' : 'false' }}">
+    <div class="mt-80">
+        @include('components.toast')
+        @include('components.toast-main')
+        
+        @yield('content')
+        @include('components.top_button')
+    </div>
+
+    @stack('scripts')
+</body>
 
 @include('layouts.partials.footer')

@@ -3,15 +3,57 @@
 @section('content-auth')
 <div class="row">
     <div class="col-12">
-        <div class="card mb-4 mx-4">
+        <div class="card mb-0 mx-0 mx-md-4 mb-md-4">
             <div class="card-header pb-0">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Danh sách truyện</h5>
-                    <a href="{{ route('stories.create') }}" class="btn bg-gradient-primary btn-sm">
-                        <i class="fas fa-plus me-2"></i>Thêm truyện mới
-                    </a>
+                <div class="d-flex flex-row justify-content-between">
+                    <div>
+                        <h5 class="mb-0">
+                            Danh sách truyện
+                        </h5>
+                        <p class="text-sm mb-0">
+                            Tổng số: {{ $totalStories }} Truyện
+                            ({{ $publishedStories }} hiển thị / {{ $draftStories }} nháp)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <form method="GET" class="d-flex gap-2">
+                        <!-- Status filter -->
+                        <select name="status" class="form-select form-select-sm" style="width: auto;">
+                            <option value="">- Trạng thái -</option>
+                            <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Hiển thị</option>
+                            <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Nháp</option>
+                        </select>
+                
+                        <!-- Category filter -->
+                        <select name="category" class="form-select form-select-sm" style="width: auto;">
+                            <option value="">- Thể loại -</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                
+                        <!-- Search input -->
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" name="search" 
+                                   value="{{ request('search') }}" placeholder="Tìm kiếm...">
+                            <button class="btn bg-gradient-primary btn-sm px-2 mb-0" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                
+                    <div>
+                        <a href="{{ route('stories.create') }}" class="btn bg-gradient-primary btn-sm mb-0">
+                            <i class="fas fa-plus me-2"></i>Thêm truyện mới
+                        </a>
+                    </div>
                 </div>
             </div>
+
             <div class="card-body px-0 pt-0 pb-2">
                 @include('admin.pages.components.success-error')
                 
@@ -22,7 +64,6 @@
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Ảnh bìa</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Tiêu đề</th>
-                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Tác giả</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Thể loại</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Số chương</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Trạng thái</th>
@@ -37,7 +78,6 @@
                                     <img src="{{ Storage::url($story->cover) }}" class="avatar avatar-sm me-3">
                                 </td>
                                 <td>{{ $story->title }}</td>
-                                <td>{{ $story->user->name }}</td>
                                 <td>
                                     @foreach($story->categories as $category)
                                         <span class="badge badge-sm bg-gradient-info">{{ $category->name }}</span>
@@ -49,18 +89,20 @@
                                         {{ $story->status === 'published' ? 'Đã xuất bản' : 'Bản nháp' }}
                                     </span>
                                 </td>
-                                <td class="text-center">
-                                    <a href="{{ route('stories.edit', $story) }}" class="btn btn-link text-dark px-3 mb-0">
+                                <td class="text-center d-flex flex-column">
+                                    <a href="{{ route('stories.chapters.index', $story) }}" class="btn btn-link text-info p-1 mb-0">
+                                        <i class="fas fa-book-open text-info me-2"></i>Xem chương
+                                    </a>
+                                    <a href="{{ route('stories.comments.index', $story) }}" class="btn btn-link text-warning p-1 mb-0">
+                                        <i class="fas fa-comments text-warning me-2"></i>Xem bình luận
+                                    </a>
+                                    <a href="{{ route('stories.edit', $story) }}" class="btn btn-link text-dark p-1 mb-0">
                                         <i class="fas fa-pencil-alt text-dark me-2"></i>Sửa
                                     </a>
-                                    <form action="{{ route('stories.destroy', $story) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-link text-danger text-gradient px-3 mb-0"
-                                                onclick="return confirm('Bạn có chắc chắn muốn xóa truyện này?');">
-                                            <i class="far fa-trash-alt me-2"></i>Xóa
-                                        </button>
-                                    </form>
+                                    @include('admin.pages.components.delete-form', [
+                                        'id' => $story->id,
+                                        'route' => route('stories.destroy', $story)
+                                    ])
                                 </td>
                             </tr>
                             @empty
@@ -72,7 +114,7 @@
                     </table>
                 </div>
                 <div class="px-4 pt-4">
-                    {{ $stories->links() }}
+                    <x-pagination :paginator="$stories" />
                 </div>
             </div>
         </div>

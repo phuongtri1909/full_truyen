@@ -15,7 +15,15 @@ class Story extends Model
         'description',
         'status',
         'cover',
+        'cover_medium',
+        'cover_thumbnail',
+        'completed',
     ];
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
 
     public function user()
     {
@@ -29,7 +37,8 @@ class Story extends Model
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class);
+        return $this->belongsToMany(Category::class)
+            ->withTimestamps();
     }
 
     public function scopePublished($query)
@@ -47,5 +56,21 @@ class Story extends Model
         return $query->withCount('chapters')->orderByDesc('chapters_count');
     }
 
-    
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function getTotalViewsAttribute()
+    {
+        return $this->chapters->sum('views');
+    }
+
+    public function getAverageViewsAttribute()
+    {
+        return $this->chapters_count > 0 ?
+            $this->total_views / $this->chapters_count : 0;
+    }
+
+    protected $with = ['categories'];
 }

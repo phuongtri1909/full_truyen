@@ -7,11 +7,11 @@
 @section('content-auth')
 <div class="row">
     <div class="col-12">
-        <div class="card mb-4 mx-4">
+        <div class="card mb-0 mx-0 mx-md-4 mb-md-4">
             <div class="card-header pb-0">
                 <div class="d-flex flex-row justify-content-between">
                     <div>
-                        <h5 class="mb-0">Danh sách bình luận</h5>
+                        <h5 class="mb-0">Danh sách bình luận: {{ $story->title }}</h5>
                     </div>
                     <form method="GET" class="mt-3 d-flex flex-column flex-md-row gap-2">
                         <div class="d-flex flex-column flex-md-row gap-2 mb-2 mb-md-0">
@@ -87,7 +87,7 @@
                                     <p class="text-xs font-weight-bold mb-0">{{ $item->created_at }}</p>
                                 </td>
                                 
-                                <td class="text-center">
+                                <td class="text-center d-flex flex-column">
 
                                     @include('admin.pages.components.delete-form', ['id' =>  $item->id, 'route' => route('comments.destroy', $item->id)])
                                 </td>

@@ -16,7 +16,7 @@
 @section('content-auth')
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4 mx-4">
+            <div class="card mb-0 mx-0 mx-md-4 mb-md-4">
                 <div class="card-header pb-0">
                     <div class="d-flex flex-row justify-content-between">
                         <h5 class="mb-0">Chi tiết người dùng</h5>
@@ -55,7 +55,6 @@
                                     (auth()->user()->role === 'admin' && $user->role !== 'admin' && !in_array($user->email, $superAdminEmails)))
                                     <select class="form-select form-select-sm w-auto" id="role-select">
                                         <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>User</option>
-                                        <option value="vip" {{ $user->role === 'vip' ? 'selected' : '' }}>Vip</option>
                                         <option value="mod" {{ $user->role === 'mod' ? 'selected' : '' }}>Mod</option>
                                         <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
                                     </select>

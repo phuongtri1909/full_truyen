@@ -71,10 +71,29 @@
                         <!-- Desktop Menu - Visible on lg screens and up -->
                         <div class="list-menu d-none d-lg-block">
                             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                                <li class="nav-item">
-                                    <a class="text-dark nav-link" href="#">
+                                <li class="nav-item dropdown">
+                                    <a class="text-dark nav-link dropdown-toggle" href="#" role="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-layer-group fa-lg"></i> Thể loại
                                     </a>
+                                    <ul class="dropdown-menu category-menu">
+                                        <div class="row px-2">
+                                            @foreach ($categories->chunk(ceil($categories->count() / 3)) as $categoryGroup)
+                                                <div class="col-4">
+                                                    @foreach ($categoryGroup as $category)
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('categories.show', $category) }}">
+                                                                {{ $category->name }}
+                                                                <span
+                                                                    class="badge bg-secondary float-end">{{ $category->stories_count }}</span>
+                                                            </a>
+                                                        </li>
+                                                    @endforeach
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </ul>
                                 </li>
 
                                 <li class="nav-item">
@@ -88,7 +107,8 @@
                         <div>
                             <div class="search-container d-flex align-items-center">
                                 <div class="position-relative">
-                                    <input type="text" class="form-control search-input" placeholder="Tìm kiếm truyện...">
+                                    <input type="text" class="form-control search-input"
+                                        placeholder="Tìm kiếm truyện...">
                                     <button class="btn search-btn">
                                         <i class="fas fa-search"></i>
                                     </button>
@@ -96,16 +116,19 @@
                             </div>
                         </div>
 
-                        <a class="text-dark nav-link d-none d-lg-block" href="{{ route('login') }}">
 
-                            @auth
+
+                        @auth
+                            <a class="text-dark nav-link d-none d-lg-block" href="{{ route('login') }}">
                                 <div class="dropdown">
                                     <a href="#"
-                                        class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark"
+                                        class="d-none d-lg-block d-flex align-items-center text-decoration-none dropdown-toggle text-dark"
                                         data-bs-toggle="dropdown">
                                         <img src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
                                             class="rounded-circle" width="40" height="40" alt="avatar"
                                             style="object-fit: cover;">
+
+                                        <span class="ms-2">{{ auth()->user()->name }}</span>
                                     </a>
 
                                     <ul class="dropdown-menu dropdown-menu-end animate slideIn">
@@ -131,14 +154,13 @@
                                     </ul>
                                 </div>
 
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                    @csrf
-                                </form>
-                            @else
-                                <a href="{{ route('login') }}" class="btn d-none d-lg-block"> <i
-                                        class="fa-regular fa-circle-user fa-lg"></i> Đăng nhập</a>
-                            @endauth
-                        </a>
+
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="btn d-none d-lg-block"> <i
+                                    class="fa-regular fa-circle-user fa-lg"></i> Đăng nhập</a>
+                        @endauth
+
 
                         <!-- Mobile Menu Toggle Button - Visible on screens smaller than lg -->
                         <button class="navbar-toggler border-0 d-lg-none" type="button" data-bs-toggle="offcanvas"
@@ -167,9 +189,34 @@
                 <div class="mobile-section">
                     <div class="mobile-nav-links d-flex flex-column">
 
-                        <a href="" class="mobile-menu-item">
-                            <i class="fa-solid fa-layer-group fa-lg me-2"></i> Thể loại
-                        </a>
+                        <div class="accordion" id="categoryAccordion">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header" id="categoryHeading">
+                                    <button class="accordion-button collapsed mobile-menu-item p-0" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#categoryCollapse">
+                                        <i class="fa-solid fa-layer-group fa-lg me-2"></i> Thể loại
+                                    </button>
+                                </h2>
+                                <div id="categoryCollapse" class="accordion-collapse collapse"
+                                    data-bs-parent="#categoryAccordion">
+                                    <div class="accordion-body p-0 mt-2">
+                                        <div class="row g-0">
+                                            @foreach($categories->chunk(ceil($categories->count() / 2)) as $categoryGroup)
+                                                <div class="col-6">
+                                                    @foreach($categoryGroup as $category)
+                                                        <a class="mobile-menu-item ps-3 py-2 d-block"
+                                                            href="{{ route('categories.show', $category) }}">
+                                                            {{ $category->name }}
+                                                            <span class="badge bg-secondary float-end">{{ $category->stories_count }}</span>
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <hr class="divider my-3">
 
@@ -179,44 +226,46 @@
 
                         <hr class="divider my-3">
 
-                        <a class="mobile-menu-item text-dark nav-link" href="{{ route('login') }}">
-                            @auth
-                                <div class="dropdown">
-                                    <a href="#"
-                                        class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark"
-                                        data-bs-toggle="dropdown">
-                                        <img src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
-                                            class="rounded-circle" width="40" height="40" alt="avatar"
-                                            style="object-fit: cover;">
-                                    </a>
 
-                                    <ul class="dropdown-menu dropdown-menu-end animate slideIn">
-                                        @if (auth()->user()->role === 'admin' || auth()->user()->role === 'mod')
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
-                                                    <i class="fas fa-tachometer-alt me-2 fa-lg"></i> Quản trị
+                        @auth
+                            <div class="accordion" id="userAccordion">
+                                <div class="accordion-item border-0">
+                                    <h2 class="accordion-header" id="userHeading">
+                                        <button class="accordion-button collapsed mobile-menu-item p-0" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#userCollapse">
+                                            <img src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
+                                                class="rounded-circle me-2" width="40" height="40" alt="avatar"
+                                                style="object-fit: cover;">
+                                            <span>{{ auth()->user()->name }}</span>
+                                        </button>
+                                    </h2>
+                                    <div id="userCollapse" class="accordion-collapse collapse"
+                                        data-bs-parent="#userAccordion">
+                                        <div class="accordion-body p-0 mt-2">
+                                            @if (auth()->user()->role === 'admin' || auth()->user()->role === 'mod')
+                                                <a class="mobile-menu-item ps-3 py-2 d-block"
+                                                    href="{{ route('admin.dashboard') }}">
+                                                    <i class="fas fa-tachometer-alt me-2"></i> Quản trị
                                                 </a>
-                                            </li>
-                                        @endif
+                                            @endif
 
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('profile') }}">
-                                                <i class="fas fa-user me-2 fa-lg"></i> Trang cá nhân
+                                            <a class="mobile-menu-item ps-3 py-2 d-block" href="{{ route('profile') }}">
+                                                <i class="fas fa-user me-2"></i> Trang cá nhân
                                             </a>
-                                        </li>
 
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('logout') }}">
-                                                <i class="fas fa-sign-out-alt me-2 fa-lg"></i> Đăng xuất
+                                            <a class="mobile-menu-item ps-3 py-2 d-block" href="{{ route('logout') }}">
+                                                <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
                                             </a>
-                                        </li>
-                                    </ul>
+                                        </div>
+                                    </div>
                                 </div>
-                            @else
-                                <a href="{{ route('login') }}" class=" mobile-menu-item"> <i
-                                        class="fa-regular fa-circle-user fa-lg me-2"></i> Đăng nhập</a>
-                            @endauth
-                        </a>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="mobile-menu-item">
+                                <i class="fa-regular fa-circle-user fa-lg me-2"></i> Đăng nhập
+                            </a>
+                        @endauth
+
                     </div>
                 </div>
             </div>

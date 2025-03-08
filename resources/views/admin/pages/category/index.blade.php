@@ -3,7 +3,7 @@
 @section('content-auth')
     <div class="row">
         <div class="col-12">
-            <div class="card mb-4 mx-4">
+            <div class="card mb-0 mx-0 mx-md-4 mb-md-4">
                 <div class="card-header pb-0">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -43,9 +43,12 @@
                                         <td>
                                             <p class="text-xs font-weight-bold mb-0">{{ $category->description }}</p>
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center d-flex flex-column">
+                                            <a href="{{ route('categories.show', $category->id) }}" class="mx-3 text-info" title="Xem truyện">
+                                                <i class="fas fa-eye text-info"></i> xem truyện
+                                            </a>
                                             <a href="{{ route('categories.edit', $category->id) }}" class="mx-3" title="Sửa">
-                                                <i class="fas fa-pencil-alt"></i>
+                                                <i class="fas fa-pencil-alt"></i> sửa
                                             </a>
                                             @include('admin.pages.components.delete-form', [
                                                 'id' => $category->id,
@@ -57,7 +60,7 @@
                             </tbody>
                         </table>
                         <div class="px-4 pt-4">
-                            {{ $categories->links() }}
+                            <x-pagination :paginator="$categories" />
                         </div>
                     </div>
                 </div>

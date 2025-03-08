@@ -7,6 +7,7 @@ use App\Models\Story;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 
@@ -63,13 +64,50 @@ class StoryController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $stories = Story::with(['user', 'categories'])
-            ->withCount('chapters')
-            ->latest()
-            ->paginate(15);
-        return view('admin.pages.story.index', compact('stories'));
+        $query = Story::with(['user', 'categories'])
+            ->withCount('chapters');
+
+        // Get counts before applying filters
+        $totalStories = Story::count();
+        $publishedStories = Story::where('status', 'published')->count();
+        $draftStories = Story::where('status', 'draft')->count();
+
+        // Apply status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Apply category filter
+        if ($request->category) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('categories.id', $request->category);
+            });
+        }
+
+        // Apply search filter
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $stories = $query->latest()->paginate(15)
+            ->withQueryString();
+
+        // Get categories for filter dropdown
+        $categories = Category::all();
+
+        return view('admin.pages.story.index', compact(
+            'stories',
+            'categories',
+            'totalStories',
+            'publishedStories',
+            'draftStories'
+        ));
     }
 
     public function create()
@@ -84,24 +122,55 @@ class StoryController extends Controller
             'title' => 'required|unique:stories|max:255',
             'description' => 'required',
             'categories' => 'required|array',
-            'cover' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'categories.*' => 'exists:categories,id',
+            'cover' => 'required|image|mimes:jpeg,png,jpg,gif',
             'status' => 'required|in:draft,published'
+        ], [
+            'title.required' => 'Tiêu đề không được để trống.',
+            'title.unique' => 'Tiêu đề đã tồn tại.',
+            'title.max' => 'Tiêu đề không được quá 255 ký tự.',
+            'description.required' => 'Mô tả không được để trống.',
+            'categories.required' => 'Chuyên mục không được để trống.',
+            'categories.*.exists' => 'Chuyên mục không hợp lệ.',
+            'cover.required' => 'Ảnh bìa không được để trống.',
+            'cover.image' => 'Ảnh bìa phải là ảnh.',
+            'cover.mimes' => 'Ảnh bìa phải có định dạng jpeg, png, jpg hoặc gif.',
+            'status.required' => 'Trạng thái không được để trống.',
+            'status.in' => 'Trạng thái không hợp lệ.'
         ]);
 
-        $coverPaths = $this->processAndSaveImage($request->file('cover'));
+        DB::beginTransaction();
+        try {
+            $coverPaths = $this->processAndSaveImage($request->file('cover'));
 
-        $story = Story::create([
-            'user_id' => auth()->id(),
-            'title' => $request->title,
-            'slug' => Str::slug($request->title),
-            'description' => $request->description,
-            'status' => $request->status,
-            'cover' => $coverPaths['original'],
-            'cover_medium' => $coverPaths['medium'],
-            'cover_thumbnail' => $coverPaths['thumbnail'],
-        ]);
+            $story = Story::create([
+                'user_id' => auth()->id(),
+                'title' => $request->title,
+                'slug' => Str::slug($request->title),
+                'description' => $request->description,
+                'status' => $request->status,
+                'cover' => $coverPaths['original'],
+                'cover_medium' => $coverPaths['medium'],
+                'cover_thumbnail' => $coverPaths['thumbnail'],
+            ]);
 
-        $story->categories()->attach($request->categories);
+            $story->categories()->attach($request->categories);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if (isset($coverPaths)) {
+                Storage::disk('public')->delete([
+                    $coverPaths['original'],
+                    $coverPaths['medium'],
+                    $coverPaths['thumbnail']
+                ]);
+            }
+
+            \Log::error('Error creating story:', ['error' => $e->getMessage()]);
+            return redirect()->route('stories.create')
+                ->with('error', 'Có lỗi xảy ra khi tạo truyện.')->withInput();
+        }
 
         return redirect()->route('stories.index')
             ->with('success', 'Truyện đã được tạo thành công.');
@@ -119,45 +188,100 @@ class StoryController extends Controller
             'title' => 'required|max:255|unique:stories,title,' . $story->id,
             'description' => 'required',
             'categories' => 'required|array',
+            'categories.*' => 'exists:categories,id',
             'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'status' => 'required|in:draft,published'
+            'status' => 'required|in:draft,published',
         ]);
 
-        $data = [
-            'title' => $request->title,
-            'slug' => Str::slug($request->title),
-            'description' => $request->description,
-            'status' => $request->status,
-        ];
+        DB::beginTransaction();
+        try {
+            $data = [
+                'title' => $request->title,
+                'slug' => Str::slug($request->title),
+                'description' => $request->description,
+                'status' => $request->status,
+                'completed' => $request->has('completed'), // Convert "on" to true, null to false
+            ];
 
-        if ($request->hasFile('cover')) {
-            // Delete old images
+            if ($request->hasFile('cover')) {
+                // Delete old images
+                $oldImages = [
+                    $story->cover,
+                    $story->cover_medium,
+                    $story->cover_thumbnail
+                ];
+
+                // Process and save new images
+                $coverPaths = $this->processAndSaveImage($request->file('cover'));
+
+                $data['cover'] = $coverPaths['original'];
+                $data['cover_medium'] = $coverPaths['medium'];
+                $data['cover_thumbnail'] = $coverPaths['thumbnail'];
+            }
+
+            $story->update($data);
+            $story->categories()->sync($request->categories);
+
+            DB::commit();
+            if(isset($oldImages)) {
+                Storage::disk('public')->delete($oldImages);
+            }
+            return redirect()->route('stories.index')
+                ->with('success', 'Truyện đã được cập nhật thành công.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            if (isset($coverPaths)) {
+                Storage::disk('public')->delete([
+                    $coverPaths['original'],
+                    $coverPaths['medium'],
+                    $coverPaths['thumbnail']
+                ]);
+            }
+            \Log::error('Error updating story:', ['error' => $e->getMessage()]);
+            return redirect()->route('stories.edit', $story)
+                ->with('error', 'Có lỗi xảy ra khi cập nhật truyện.')->withInput();
+        }
+    }
+
+    public function show(Story $story)
+    {
+        $chapters = $story->chapters()
+            ->latest()
+            ->paginate(15);
+
+        $totalChapters = $story->chapters()->count();
+        $publishedChapters = $story->chapters()->where('status', 'published')->count();
+        $draftChapters = $story->chapters()->where('status', 'draft')->count();
+
+        return view('admin.pages.chapters.index', compact(
+            'story',
+            'chapters',
+            'totalChapters',
+            'publishedChapters',
+            'draftChapters'
+        ));
+    }
+
+    public function destroy(Story $story)
+    {
+        DB::beginTransaction();
+
+        try {
+            $story->categories()->detach();
+            $story->delete();
+            DB::commit();
+
             Storage::disk('public')->delete([
                 $story->cover,
                 $story->cover_medium,
                 $story->cover_thumbnail
             ]);
-
-            // Process and save new images
-            $coverPaths = $this->processAndSaveImage($request->file('cover'));
-            $data['cover'] = $coverPaths['original'];
-            $data['cover_medium'] = $coverPaths['medium'];
-            $data['cover_thumbnail'] = $coverPaths['thumbnail'];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error deleting story:', ['error' => $e->getMessage()]);
+            return redirect()->route('stories.index')
+                ->with('error', 'Có lỗi xảy ra khi xóa truyện.');
         }
-
-        $story->update($data);
-        $story->categories()->sync($request->categories);
-
-        return redirect()->route('stories.index')
-            ->with('success', 'Truyện đã được cập nhật thành công.');
-    }
-
-    public function destroy(Story $story)
-    {
-        Storage::disk('public')->delete($story->cover);
-        $story->categories()->detach();
-        $story->chapters()->delete();
-        $story->delete();
 
         return redirect()->route('stories.index')
             ->with('success', 'Truyện đã được xóa thành công.');

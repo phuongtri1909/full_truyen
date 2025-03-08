@@ -5,10 +5,10 @@
 
 
 @section('content')
-    <section class="pt-5 container-md">
-        @include('components.list_story_home')
-        @include('components.list_story_new')
-        @include('components.list_story_full')
+    <section class="container-md">
+        @include('components.list_story_home', ['list_story' => $hotStories])
+        @include('components.list_story_new',['newStories' => $newStories])
+        @include('components.list_story_full',['completedStories' => $completedStories])
     </section>
    
 @endsection

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Story;
 use App\Models\Rating;
+use App\Models\Status;
 use App\Models\Chapter;
 use App\Models\Comment;
 use App\Models\Socials;
-use App\Models\Status;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -15,122 +16,251 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
-       return view('pages.home');
+        // Get hot stories
+        $hotStories = $this->getHotStories($request);
+
+        // Get new stories
+        $newStories = $this->getNewStories($request);
+
+        // Get completed stories
+        $completedStories = Story::with(['chapters' => function($query) {
+                $query->select('id', 'story_id', 'number')
+                      ->latest();
+            }, 'categories'])
+            ->published()
+            ->where('completed', true) // Using the completed column
+            ->withCount(['chapters' => function($query) {
+                $query->published();
+            }])
+            ->whereHas('chapters', function($query) {
+                $query->published();
+            })
+            ->select([
+                'id',
+                'title',
+                'slug',
+                'cover',
+                'completed',
+                'updated_at'
+            ])
+            ->latest('updated_at')
+            ->take(18)
+            ->get();
+
+        // Handle AJAX requests
+        if ($request->ajax()) {
+            if ($request->type === 'hot') {
+                return response()->json([
+                    'html' => view('components.stories-grid', compact('hotStories'))->render()
+                ]);
+            } elseif ($request->type === 'new') {
+                return response()->json([
+                    'html' => view('components.story-list-items', compact('newStories'))->render()
+                ]);
+            }
+        }
+
+        return view('pages.home', compact('hotStories', 'newStories', 'completedStories'));
     }
 
-    // public function index(Request $request)
-    // {
-    //     // Initialize base query
-    //     $query = Chapter::query();
+    private function getHotStories($request)
+    {
+        // Move existing hot stories logic here
+        $query = Story::with(['chapters' => function ($query) {
+            $query->select('id', 'story_id', 'views', 'created_at');
+        }])
+        ->published()
+        ->withCount(['chapters' => function ($query) {
+            $query->published();
+        }])
+        ->whereHas('chapters', function ($query) {
+            $query->published();
+        })
+        ->select([
+            'id',
+            'title',
+            'slug',
+            'cover',
+            'description',
+            'created_at',
+            'updated_at'
+        ])
+        ->where('updated_at', '>=', now()->subDays(30));
 
-    //     // Visibility check based on user role
-    //     if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
-    //         $query->where('status', 'published');
-    //     }
+        // Apply category filter if selected
+        if ($request->category_id) {
+            $query->whereHas('categories', function($q) use ($request) {
+                $q->where('categories.id', $request->category_id);
+            });
+        }
 
-    //     // Calculate chapter ranges starting from oldest chapters
-    //     $maxNumber = Chapter::max('number') ?? 0;
-    //     $minNumber = Chapter::min('number') ?? 0;
-    //     $ranges = [];
+        $hotStories = $query->get()
+            ->map(function ($story) {
+                $story->hot_score = $this->calculateHotScore($story);
+                return $story;
+            })
+            ->sortByDesc('hot_score')
+            ->take(12);
 
-    //     // Calculate total complete chunks
-    //     $totalChunks = ceil($maxNumber / 100);
+        return $hotStories;
+    }
 
-    //     // Create ranges from bottom up
-    //     for ($i = 1; $i <= $totalChunks; $i++) {
-    //         $start = min($i * 100, $maxNumber);
-    //         $end = max(($i - 1) * 100 + 1, $minNumber);
-    //         $ranges[] = [
-    //             'start' => $start,
-    //             'end' => $end
-    //         ];
-    //     }
+    private function calculateHotScore($story)
+    {
+        // Get total views of all chapters
+        $totalViews = $story->chapters->sum('views');
 
-    //     // Reverse array to show newest chapters first
-    //     $ranges = array_reverse($ranges);
+        // Get average views per chapter
+        $avgViews = $story->chapters_count > 0 ?
+            $totalViews / $story->chapters_count : 0;
 
-    //     // Handle search
-    //     if ($request->search) {
-    //         $searchQuery = Chapter::query();
+        // Get views in last 7 days
+        $recentViews = $story->chapters()
+            ->where('created_at', '>=', now()->subDays(7))
+            ->sum('views');
 
-    //         // Reapply visibility for search
-    //         if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
-    //             $searchQuery->where('status', 'published');
-    //         }
+        // Calculate chapter frequency (chapters per day)
+        $daysActive = max(1, $story->created_at->diffInDays(now()));
+        $chapterFrequency = $story->chapters_count / $daysActive;
 
-    //         $search = $request->search;
-    //         $searchNumber = preg_replace('/[^0-9]/', '', $search);
+        // Calculate recency boost (newer stories get higher scores)
+        $daysSinceLastUpdate = $story->updated_at->diffInDays(now());
+        $recencyBoost = 1 + (1 / max(1, $daysSinceLastUpdate));
 
-    //         $searchQuery->where(function ($q) use ($search, $searchNumber) {
-    //             $q->where('title', 'like', "%{$search}%")
-    //                 ->orWhere('content', 'like', "%{$search}%");
+        // Calculate final score using weighted factors
+        $score = (
+            ($totalViews * 0.3) +
+            ($avgViews * 0.2) +
+            ($recentViews * 0.25) +
+            ($chapterFrequency * 15) +
+            ($story->chapters_count * 5)
+        ) * $recencyBoost;
 
-    //             if ($searchNumber !== '') {
-    //                 $q->orWhere('number', $searchNumber);
-    //             }
-    //         });
+        return $score;
+    }
 
-    //         $query = $searchQuery;
-    //     }
-    //     // Handle range filtering if not searching
-    //     else if ($request->start && $request->end) {
-    //         $query->whereBetween('number', [(int)$request->end, (int)$request->start]);
-    //     }
-    //     // Default to latest 100 chapters
-    //     else {
-    //         $query->where('number', '<=', $maxNumber)
-    //             ->where('number', '>', $maxNumber - 100);
-    //     }
+    private function getNewStories($request)
+    {
+        $query = Story::with(['chapters' => function($query) {
+                $query->select('id', 'story_id', 'title', 'number', 'views', 'created_at')
+                      ->latest();
+            }, 'categories'])
+            ->published()
+            ->withCount(['chapters' => function($query) {
+                $query->published();
+            }])
+            ->whereHas('chapters', function($query) {
+                $query->published();
+            })
+            ->select([
+                'id',
+                'title',
+                'slug',
+                'cover',
+                'status'
+            ])
+            ->whereHas('chapters', function($query) {
+                $query->where('created_at', '>=', now()->subDays(30));
+            });
 
-    //     // Apply sorting
-    //     $isOldFirst = filter_var($request->old_first, FILTER_VALIDATE_BOOLEAN);
-    //     $orderDirection = $isOldFirst ? 'asc' : 'desc';
-    //     $chapters = $query->orderBy('number', $orderDirection)->get();
+        if ($request->category_id) {
+            $query->whereHas('categories', function($q) use ($request) {
+                $q->where('categories.id', $request->category_id);
+            });
+        }
 
+        return $query->orderByDesc(function($query) {
+                $query->select('created_at')
+                      ->from('chapters')
+                      ->whereColumn('story_id', 'stories.id')
+                      ->latest()
+                      ->limit(1);
+            })
+            ->take(20)
+            ->get();
+    }
 
+    public function showStory(Request $request, $slug)
+    {
+        $story = Story::where('slug', $slug)->firstOrFail();
 
-    //     // Get pinned comments separately
-    //     $pinnedComments = Comment::with(['user', 'replies.user', 'reactions'])
-    //         ->whereNull('reply_id')
-    //         ->where('is_pinned', true)
-    //         ->latest()
-    //         ->get();
+        // Eager load necessary relationships
+        $story->load(['categories']);
 
-    //     // Get regular comments with pagination
-    //     $regularComments = Comment::with(['user', 'replies.user', 'reactions'])
-    //         ->whereNull('reply_id')
-    //         ->where('is_pinned', false)  // Explicitly exclude pinned comments
-    //         ->latest()
-    //         ->paginate(10);
+        // Get chapters with pagination
+        $chapters = Chapter::where('story_id', $story->id)
+            ->published()
+            ->orderBy('number', 'desc')
+            ->paginate(20); // Show 20 chapters per page
 
-    //     // Handle AJAX requests
-    //     if ($request->ajax()) {
-    //         if ($request->type === 'comments') {
-    //             // Only include pinned comments on first page
-    //             $showPinned = $request->page == 1;
-                
-    //             return response()->json([
-    //                 'html' => view('components.comments-list', [
-    //                     'pinnedComments' => $showPinned ? $pinnedComments : collect([]),
-    //                     'regularComments' => $regularComments
-    //                 ])->render(),
-    //                 'hasMore' => $regularComments->hasMorePages()
-    //             ]);
-    //         }
+        // Calculate stats
+        $stats = [
+            'total_chapters' => Chapter::where('story_id', $story->id)->published()->count(),
+            'total_views' => Chapter::where('story_id', $story->id)->sum('views'),
+            'ratings' => [
+                'count' => Rating::where('story_id', $story->id)->count(),
+                'average' => Rating::where('story_id', $story->id)->avg('rating') ?? 0
+            ]
+        ];
 
-    //         return response()->json([
-    //             'html' => view('components.chapter-items', compact('chapters'))->render()
-    //         ]);
-    //     }
+        // Get story status
+        $status = (object)[
+            'status' => $story->completed ? 'done' : 'ongoing'
+        ];
 
-    //      // Return view with all data
-    //     return view('pages.home', compact(
-    //         'chapters',
-    //         'pinnedComments',
-    //         'regularComments',
-    //         'ranges'
-    //     ));
-    // }
+        // Get category list with story count
+        $storyCategories = $story->categories->map(function($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ];
+        });
+
+        // Prepare chapters pagination and ranges
+        $chapters = $story->chapters()
+            ->published()
+            ->orderBy('number', 'desc')
+            ->paginate(50);
+
+        // Calculate chapter ranges for dropdown
+        $totalChapters = $story->chapters()->published()->count();
+        $rangeSize = 50;
+        $ranges = [];
+        
+        for ($i = 1; $i <= $totalChapters; $i += $rangeSize) {
+            $ranges[] = [
+                'start' => $i,
+                'end' => min($i + $rangeSize - 1, $totalChapters)
+            ];
+        }
+
+        // Get comments
+        $pinnedComments = Comment::with('user')
+            ->where('story_id', $story->id)
+            ->where('is_pinned', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $regularComments = Comment::with('user')
+            ->where('story_id', $story->id)
+            ->where('is_pinned', false)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        
+        
+        return view('pages.story', compact(
+            'story',
+            'stats',
+            'status',
+            'chapters',
+            'ranges',
+            'pinnedComments',
+            'regularComments',
+            'storyCategories' // Add this to the view data
+        ));
+    }
 
     public function chapter($slug)
     {

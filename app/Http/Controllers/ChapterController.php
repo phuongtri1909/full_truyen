@@ -4,30 +4,33 @@ namespace App\Http\Controllers;
 
 
 use App\Models\User;
+use App\Models\Story;
 use App\Models\Rating;
-use App\Models\Chapter;
 use App\Models\Status;
+use App\Models\Chapter;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\Return_;
 
 class ChapterController extends Controller
 {
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(Request $request, Story $story)
     {
+       
         $search = $request->search;
-        $query = Chapter::query();
+        $status = $request->status;
+        $query = $story->chapters();
 
-        $totalChapters = Chapter::count();
-        $publishedChapters = Chapter::where('status', 'published')->count();
-        $draftChapters = Chapter::where('status', 'draft')->count();
+        $totalChapters = $query->count();
+        $publishedChapters = $story->chapters()->where('status', 'published')->count();
+        $draftChapters = $story->chapters()->where('status', 'draft')->count();
+
+        if ($status) {
+            $query->where('status', $status);
+        }
 
         if ($search) {
-            $searchNumber = preg_replace('/[^0-9]/', '', $search); // Extract numbers only
+            $searchNumber = preg_replace('/[^0-9]/', '', $search);
 
             $query->where(function ($q) use ($search, $searchNumber) {
                 $q->where('title', 'like', "%$search%")
@@ -46,44 +49,33 @@ class ChapterController extends Controller
             $chapter->content = mb_substr($content, 0, 97, 'UTF-8') . '...';
         }
 
-        $status = Status::first();
-
         return view('admin.pages.chapters.index', compact(
+            'story',
             'chapters',
             'totalChapters',
             'publishedChapters',
             'draftChapters',
-            'status'
         ));
-
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(Story $story)
     {
-        $latestChapterNumber = Chapter::max('number') ?? 0;
+        $latestChapterNumber = $story->chapters()->max('number') ?? 0;
         $nextChapterNumber = $latestChapterNumber + 1;
 
-        return view('admin.pages.chapters.create', compact('nextChapterNumber'));
+        return view('admin.pages.chapters.create', compact('story', 'nextChapterNumber'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request, Story $story)
     {
-        $baseSlug = 'chuong-' . $request->number;
-
         $request->validate([
             'title' => 'required',
             'content' => 'required',
             'number' => [
                 'required',
-                function ($attribute, $value, $fail) {
-                    if (Chapter::where('number', $value)->exists()) {
-                        $fail('Chương ' . $value . ' đã tồn tại');
+                function ($attribute, $value, $fail) use ($story) {
+                    if ($story->chapters()->where('number', $value)->exists()) {
+                        $fail('Chương ' . $value . ' đã tồn tại trong truyện này');
                     }
                 },
                 'integer',
@@ -99,108 +91,79 @@ class ChapterController extends Controller
         ]);
 
         try {
+            $chapter = $story->chapters()->create([
+                'slug' => 'chuong-' . $request->number . '-' . Str::slug($request->title),
+                'title' => $request->title,
+                'content' => $request->content,
+                'number' => $request->number,
+                'status' => $request->status,
+                'user_id' => auth()->id(),
+                'updated_content_at' => now(),
+            ]);
 
-            $testSlug = 'chuong-' . $request->number . '-' . Str::slug($request->title);
-
-            $chapter = new Chapter();
-            $chapter->slug = $testSlug;
-            $chapter->title = $request->title;
-            $chapter->content = $request->content;
-            $chapter->number = $request->number;
-            $chapter->status = $request->status;
-            $chapter->updated_content_at = now();
-
-            $chapter->save();
-
-            return redirect()->route('chapters.index')->with('success', 'Tạo chương ' . $request->number . ' thành công');
+            return redirect()->route('stories.chapters.index', $story)
+                ->with('success', 'Tạo chương ' . $request->number . ' thành công');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại')->withInput();
+            return redirect()->back()
+                ->with('error', 'Có lỗi xảy ra, vui lòng thử lại')
+                ->withInput();
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($chapter)
+    public function edit(Story $story, Chapter $chapter)
     {
-        $chapter = Chapter::find($chapter);
-        if (!$chapter) {
-            return redirect()->route('chapters.index')->with('error', 'Không tìm thấy chương này');
-        }
-        return view('admin.pages.chapters.edit', compact('chapter'));
+        return view('admin.pages.chapters.edit', compact('story', 'chapter'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request,  $chapter)
+    public function update(Request $request, Story $story, Chapter $chapter)
     {
-
-        $chapter = Chapter::find($chapter);
-
-        if (!$chapter) {
-            return redirect()->route('chapters.index')->with('error', 'Không tìm thấy chương này');
-        }
-
-        $baseSlug = 'chuong-' . $request->number;
-
         $request->validate([
             'title' => 'required',
             'content' => 'required',
             'number' => [
                 'required',
-                function ($attribute, $value, $fail) use ($chapter) {
-                    if (Chapter::where('number', $value)
+                function ($attribute, $value, $fail) use ($story, $chapter) {
+                    if ($story->chapters()
+                        ->where('number', $value)
                         ->where('id', '!=', $chapter->id)
                         ->exists()
                     ) {
-                        $fail('Chương số ' . $value . ' đã tồn tại');
+                        $fail('Chương số ' . $value . ' đã tồn tại trong truyện này');
                     }
                 },
                 'integer',
             ],
             'status' => 'required|in:draft,published',
-        ], [
-            'title.required' => 'Tên chương không được để trống',
-            'content.required' => 'Nội dung chương không được để trống',
-            'number.required' => 'Số chương không được để trống',
-            'number.integer' => 'Số chương phải là số nguyên',
-            'status.required' => 'Trạng thái chương không được để trống',
-            'status.in' => 'Trạng thái chương không hợp lệ',
         ]);
 
         try {
+            $chapter->update([
+                'slug' => 'chuong-' . $request->number . '-' . Str::slug($request->title),
+                'title' => $request->title,
+                'content' => $request->content,
+                'number' => $request->number,
+                'status' => $request->status,
+                'updated_content_at' => now(),
+            ]);
 
-            $testSlug = 'chuong-' . $request->number . '-' . Str::slug($request->title);
-            $chapter->slug = $testSlug;
-            $chapter->title = $request->title;
-            $chapter->content = $request->content;
-            $chapter->number = $request->number;
-            $chapter->status = $request->status;
-            $chapter->updated_content_at = now();
-
-            $chapter->save();
-
-            return redirect()->route('chapters.index')->with('success', 'Cập nhật chương ' . $request->number . ' thành công');
+            return redirect()->route('stories.chapters.index', $story)
+                ->with('success', 'Cập nhật chương ' . $request->number . ' thành công');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại' . $e->getMessage())->withInput();
+            return redirect()->back()
+                ->with('error', 'Có lỗi xảy ra, vui lòng thử lại')
+                ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($chapter)
+    public function destroy(Story $story, Chapter $chapter)
     {
-        if (!$chapter) {
-            return redirect()->route('chapters.index')->with('error', 'Không tìm thấy chương này');
-        }
-
         try {
-            Chapter::destroy($chapter);
-            return redirect()->route('chapters.index')->with('success', 'Xóa chương thành công');
+            $chapter->delete();
+            return redirect()->route('stories.chapters.index', $story)
+                ->with('success', 'Xóa chương thành công');
         } catch (\Exception $e) {
-            return redirect()->route('chapters.index')->with('error', 'Có lỗi xảy ra, vui lòng thử lại');
+            return redirect()->route('stories.chapters.index', $story)
+                ->with('error', 'Có lỗi xảy ra, vui lòng thử lại');
         }
     }
 }

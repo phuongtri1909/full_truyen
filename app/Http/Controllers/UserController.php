@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
+use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -53,12 +55,14 @@ class UserController extends Controller
                 ], 403);
             }
         
-            if ($user->avatar && File::exists(public_path($user->avatar))) {
-                File::delete(public_path($user->avatar));
+            // Delete avatar using Storage facade instead of File facade
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
             }
+            
             $user->avatar = null;
             $user->save();
-            
+        
             return response()->json([
                 'status' => 'success',
                 'message' => 'Đã xóa ảnh đại diện'
@@ -78,7 +82,7 @@ class UserController extends Controller
                     'message' => 'Không thể thay đổi quyền của Super Admin'
                 ], 403);
             }
-    
+
             // Only super admin can change admin roles
             if ($user->role === 'admin' && !$isSuperAdmin) {
                 return response()->json([
@@ -86,11 +90,14 @@ class UserController extends Controller
                     'message' => 'Không có quyền thực hiện'
                 ], 403);
             }
-    
+
             $request->validate([
-                'role' => 'required|in:user,mod,admin,vip'
+                'role' => 'required|in:user,mod,admin'
+            ], [
+                'role.required' => 'Trường role không được để trống',
+                'role.in' => 'Giá trị không hợp lệ'
             ]);
-            
+
             $user->role = $request->role;
         }
 
@@ -180,7 +187,6 @@ class UserController extends Controller
             'admin' => User::where('active', 'active')->where('role', 'admin')->count(),
             'mod' => User::where('active', 'active')->where('role', 'mod')->count(),
             'user' => User::where('active', 'active')->where('role', 'user')->count(),
-            'vip' => User::where('active', 'active')->where('role', 'vip')->count()
         ];
 
         if ($authUser->role === 'mod') {
@@ -375,54 +381,87 @@ class UserController extends Controller
         return view('pages.information.index', compact('user'));
     }
 
+    private function processAndSaveAvatar($imageFile)
+    {
+        $now = Carbon::now();
+        $yearMonth = $now->format('Y/m');
+        $timestamp = $now->format('YmdHis');
+        $randomString = Str::random(8);
+        $fileName = "{$timestamp}_{$randomString}";
+
+        // Create directories if they don't exist
+        Storage::disk('public')->makeDirectory("avatars/{$yearMonth}");
+
+        // Process avatar image (200x200)
+        $avatarImage = Image::make($imageFile);
+        $avatarImage->fit(200, 200, function ($constraint) {
+            $constraint->aspectRatio();
+        });
+        $avatarImage->encode('webp', 80);
+
+        $path = "avatars/{$yearMonth}/{$fileName}.webp";
+        Storage::disk('public')->put($path, $avatarImage->stream());
+
+        return $path;
+    }
+
     public function updateAvatar(Request $request)
     {
         try {
             $request->validate([
-                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
             ], [
                 'avatar.required' => 'Hãy chọn ảnh avatar',
                 'avatar.image' => 'Avatar phải là ảnh',
-                'avatar.mimes' => 'Chỉ chấp nhận ảnh định dạng jpeg, png, jpg, gif, svg',
+                'avatar.mimes' => 'Chỉ chấp nhận ảnh định dạng jpeg, png, jpg hoặc gif',
                 'avatar.max' => 'Dung lượng avatar không được vượt quá 4MB'
             ]);
+
+            $user = Auth::user();
+            DB::beginTransaction();
+
+            try {
+                // Store old avatar path for deletion
+                $oldAvatar = $user->avatar;
+
+                // Process and save new avatar
+                $avatarPath = $this->processAndSaveAvatar($request->file('avatar'));
+
+                // Update user avatar path
+                $user->avatar = $avatarPath;
+                $user->save();
+
+                DB::commit();
+
+                // Delete old avatar after successful update
+                if ($oldAvatar) {
+                    Storage::disk('public')->delete($oldAvatar);
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Cập nhật avatar thành công',
+                    'avatar' => Storage::url($avatarPath)
+                ], 200);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                // Delete new avatar if it was uploaded
+                if (isset($avatarPath)) {
+                    Storage::disk('public')->delete($avatarPath);
+                }
+
+                \Log::error('Avatar update error:', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Có lỗi xảy ra, vui lòng thử lại sau'
+                ], 500);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->errors()
             ], 422);
-        }
-        $user = Auth::user();
-
-        DB::beginTransaction();
-        try {
-            $imageBackup = $user->avatar;
-            $imageName = $user->id . time() . '.' . $request->avatar->extension();
-            $request->avatar->move(public_path('/uploads/images/avatar/'), $imageName);
-            $imagePath = '/uploads/images/avatar/' . $imageName;
-
-            $user->avatar = $imagePath;
-            $user->save();
-
-            DB::commit();
-
-            if (isset($imageBackup) && File::exists($imageBackup)) {
-                File::delete($imageBackup);
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Cập nhật avatar thành công',
-            ], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            if (File::exists($imagePath)) {
-                File::delete($imagePath);
-            }
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Có lỗi xảy ra, vui lòng thử lại sau'
-            ], 500);
         }
     }
 

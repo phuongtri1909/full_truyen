@@ -24,6 +24,10 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|unique:categories|max:255',
             'description' => 'nullable'
+        ], [
+            'name.required' => 'Tên thể loại không được để trống.',
+            'name.unique' => 'Tên thể loại đã tồn tại.',
+            'name.max' => 'Tên thể loại không được vượt quá 255 ký tự.'
         ]);
 
         Category::create([
@@ -46,21 +50,48 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|max:255|unique:categories,name,' . $category->id,
             'description' => 'nullable'
+        ], [
+            'name.required' => 'Tên thể loại không được để trống.',
+            'name.unique' => 'Tên thể loại đã tồn tại.',
+            'name.max' => 'Tên thể loại không được vượt quá 255 ký tự.'
         ]);
 
-        $category->update([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'description' => $request->description
-        ]);
+        try {
+            $category->update([
+                'name' => $request->name,
+                'slug' => Str::slug($request->name),
+                'description' => $request->description
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating category:', ['error' => $e->getMessage()]);
+            return redirect()->route('categories.edit', $category)
+                ->with('error', 'Có lỗi xảy ra khi cập nhật thể loại.')->withInput();
+        }
 
         return redirect()->route('categories.index')
             ->with('success', 'Thể loại đã được cập nhật thành công.');
     }
 
+    public function show(Category $category)
+    {
+        $stories = $category->stories()
+            ->with('user')
+            ->withCount('chapters')
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.pages.category.show', compact('category', 'stories'));
+    }
+
     public function destroy(Category $category)
     {
-        $category->delete();
+        try {
+            $category->delete();
+        } catch (\Exception $e) {
+            \Log::error('Error deleting category:', ['error' => $e->getMessage()]);
+            return redirect()->route('categories.index')
+                ->with('error', 'Có lỗi xảy ra khi xóa thể loại.');
+        }
         return redirect()->route('categories.index')
             ->with('success', 'Thể loại đã được xóa thành công.');
     }

@@ -1,83 +1,58 @@
-<div class="mt-4">
+<section class="new-stories-section mt-4">
     <div class="row">
-
-        <!-- Main Content - New Stories (col-8) -->
+        <!-- Main Content - New Stories -->
         <div class="col-12 col-sm-7 col-md-8">
-            <div class="card">
-                <div class="card-header bg-white">
+            <div class="content-wrapper">
+                <div class="section-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h1 class="section-title">Truyện mới cập nhât</h1>
+                        <h1 class="section-title">
+                            <i class="fas fa-clock text-primary me-2 fa-xl cl-00b894"></i>Truyện mới cập nhật
+                        </h1>
                         <div class="category-filter">
-                            <select class="form-select">
-                                <option selected>Tất cả thể loại</option>
-                                <option>Tiên Hiệp</option>
-                                <option>Kiếm Hiệp</option>
-                                <option>Ngôn Tình</option>
-                                <option>Đô Thị</option>
+                            <select class="form-select custom-select" id="newStoryCategoryFilter">
+                                <option value="">Tất cả thể loại</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="stories-container">
                     <div class="list-stories">
-                        @for ($i = 1; $i <= 10; $i++)
-                            <div class="story-item p-3 border-bottom">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://fastly.picsum.photos/id/772/60/80.jpg?hmac=3HEZ-qeOvZMN79r1rQQ0JWVEeU5MMGWvUsRSuQjpgWM"
-                                            class="story-thumb" alt="Story thumbnail">
-                                        <div class="ms-3">
-                                            <h3 class="story-title">
-                                                <a href="#">Tên Truyện {{ $i }}</a>
-                                            </h3>
-
-                                            <div class="">
-                                                <span class="category-tag">Tiên Hiệp</span>
-                                                <span class="category-tag">Kiếm Hiệp</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="story-meta mb-1">
-                                            <span class="text-muted me-3">
-                                                <i class="fas fa-book-open me-1"></i> Chương 123
-                                            </span>
-                                            <span class="text-muted">
-                                                <i class="fas fa-clock me-1"></i> 5 phút trước
-                                            </span>
-                                        </div>
-                                        <div class="story-badges">
-                                            <span class="badge-new">New</span>
-                                            <span class="badge-hot">Hot</span>
-                                            <span class="badge-full">Full</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endfor
+                        @include('components.story-list-items', ['newStories' => $newStories])
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar (col-4) -->
+        <!-- Sidebar -->
         <div class="col-12 col-sm-5 col-md-4">
             <!-- Recently Read Stories -->
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h3 class="section-title mb-0">Đọc Gần Đây</h3>
+            <div class="sidebar-widget recent-reads">
+                <div class="widget-header">
+                    <h3 class="widget-title">
+                        <i class="fas fa-history text-primary me-2 fa-xl text-info"></i>Đọc Gần Đây
+                    </h3>
                 </div>
-                <div class="card-body p-0">
+                <div class="widget-content">
                     @for ($i = 1; $i <= 5; $i++)
-                        <div class="recent-story-item p-3 border-bottom">
+                        <div class="recent-story-item">
                             <div class="d-flex align-items-center">
-                                <img src="https://fastly.picsum.photos/id/23/50/65.jpg?hmac=sLiac5NB10ApMmTEyc4URtYMViHqnsEVQq2-GmDX52E"
-                                    class="recent-story-thumb" alt="Story thumbnail">
-                                <div class="recent-story-info ms-3">
-                                    <h4 class="recent-story-title mb-1">
+                                <div class="story-thumb-wrapper">
+                                    <img src="https://fastly.picsum.photos/id/23/50/65.jpg" 
+                                         class="recent-story-thumb" alt="Story thumbnail">
+                                </div>
+                                <div class="story-info">
+                                    <h4 class="recent-story-title">
                                         <a href="#">Truyện Đã Đọc {{ $i }}</a>
                                     </h4>
-                                    <div class="text-muted small">Đọc đến: Chương 45</div>
+                                    <div class="reading-progress">
+                                        <div class="progress-label">Đọc đến: Chương 45</div>
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width: 45%"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -85,26 +60,32 @@
                 </div>
             </div>
 
-            <!-- Categories -->
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h3 class="section-title mb-0">Thể Loại</h3>
+            <!-- Categories Widget -->
+            <div class="sidebar-widget categories-widget">
+                <div class="widget-header">
+                    <h3 class="widget-title">
+                        <i class="fas fa-tags text-primary me-2"></i>Thể Loại
+                    </h3>
                 </div>
-                <div class="card-body">
+                <div class="widget-content">
                     <div class="category-grid">
-                        @foreach (['Tiên Hiệp', 'Kiếm Hiệp', 'Ngôn Tình', 'Đô Thị', 'Huyền Huyễn', 'Xuyên Không', 'Trọng Sinh', 'Dị Giới'] as $category)
-                            <a href="#" class="category-item">{{ $category }}</a>
+                        @foreach ($categories as $category)
+                            <a href="{{ route('categories.show', $category) }}" 
+                               class="category-item" 
+                               data-stories="{{ $category->stories_count }}">
+                                <span class="category-name">{{ $category->name }}</span>
+                                <span class="story-count">{{ $category->stories_count }}</span>
+                            </a>
                         @endforeach
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 @once
     @push('styles')
-        // Add this CSS to your styles
         <style>
             .story-badges {
                 display: flex;
@@ -153,7 +134,7 @@
             }
 
             .story-title {
-                font-size: 1.1rem;
+                font-size: 0.9rem;
                 margin: 0;
             }
 
@@ -238,6 +219,39 @@
                     grid-template-columns: repeat(2, 1fr);
                 }
             }
+
+            
         </style>
+    @endpush
+
+    @push('scripts')
+        <script>
+            $(document).ready(function() {
+                $('#newStoryCategoryFilter').change(function() {
+                    const categoryId = $(this).val();
+                    const storiesContainer = $('.list-stories');
+                    
+                    storiesContainer.addClass('loading');
+                    
+                    $.ajax({
+                        url: '{{ route("home") }}',
+                        method: 'GET',
+                        data: {
+                            category_id: categoryId,
+                            type: 'new'
+                        },
+                        success: function(response) {
+                            storiesContainer.html(response.html);
+                        },
+                        error: function() {
+                            alert('Có lỗi xảy ra khi lọc truyện');
+                        },
+                        complete: function() {
+                            storiesContainer.removeClass('loading');
+                        }
+                    });
+                });
+            });
+        </script>
     @endpush
 @endonce

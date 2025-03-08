@@ -1,66 +1,3 @@
-@push('styles')
-    <style>
-        .chapter-card {
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-
-        .chapter-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .stats-list-chapter {
-            display: flex;
-            flex-direction: row;
-            gap: 0.8rem;
-        }
-
-        .counter-chapter {
-            font-weight: bold;
-            margin-right: 5px;
-            transition: all 0.3s ease-out;
-        }
-
-        .stat-item-chapter {
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        .new-badge {
-            color: #ff0000;
-            font-weight: bold;
-            margin-left: 5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .new-badge {
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.2);
-                opacity: 0.7;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-    </style>
-@endpush
-
 <div class="row">
     {{-- Mobile View: Single Column --}}
     <div class="d-block d-md-none">
@@ -135,3 +72,66 @@
         </ul>
     </div>
 </div>
+
+@push('styles')
+    <style>
+        .chapter-card {
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .chapter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-list-chapter {
+            display: flex;
+            flex-direction: row;
+            gap: 0.8rem;
+        }
+
+        .counter-chapter {
+            font-weight: bold;
+            margin-right: 5px;
+            transition: all 0.3s ease-out;
+        }
+
+        .stat-item-chapter {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .new-badge {
+            color: #ff0000;
+            font-weight: bold;
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .new-badge {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+@endpush

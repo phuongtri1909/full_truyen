@@ -12,8 +12,7 @@ class Category extends Model
 
     public function stories()
     {
-        return $this->hasMany(Story::class);
+        return $this->belongsToMany(Story::class)
+                    ->withTimestamps();
     }
-
-    
 }

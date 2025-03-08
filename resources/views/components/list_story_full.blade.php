@@ -1,30 +1,37 @@
 <div class="finished-stories mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="finished-title">Truyện Đã Hoàn Thành</h2>
+        <h2 class="finished-title">
+            <i class="fas fa-check-circle text-success me-2 fa-xl"></i>
+            Truyện Đã Hoàn Thành
+        </h2>
     </div>
 
     <div class="row g-4">
-        @for ($i = 1; $i <= 18; $i++)
+        @foreach($completedStories as $story)
             <div class="col-6 col-md-4 col-lg-2 finished-item">
                 <div class="finished-card">
                     <div class="finished-thumbnail">
                         <div class="finished-badge">FULL</div>
-                        <a href="#">
-                            <img src="https://fastly.picsum.photos/id/232/300/400.jpg?hmac=DXOdMe8Pi_wLFGqNGzuwLhEOl4xYSG-XoRGf13mr29w" alt="Story cover" class="img-fluid">
+                        <a href="{{ route('stories.show', $story->slug) }}">
+                            <img src="{{ Storage::url($story->cover) }}" 
+                                 alt="{{ $story->title }}" 
+                                 class="img-fluid">
                         </a>
                     </div>
                     <div class="finished-info">
                         <h3 class="finished-name">
-                            <a class="fw-bold" href="#">Tên Truyện Hoàn Thành {{ $i }}</a>
+                            <a class="fw-bold" href="{{ route('stories.show', $story->slug) }}">
+                                {{ $story->title }}
+                            </a>
                         </h3>
                         <div class="finished-chapters">
-                            <i class="fas fa-book-open"></i>
-                            <span class="fw-bold">150 Chương</span>
+                            <i class="fas fa-book-open text-danger"></i>
+                            <span class="fw-bold">{{ $story->chapters_count }}</span>
                         </div>
                     </div>
                 </div>
             </div>
-        @endfor
+        @endforeach
     </div>
 </div>
 
@@ -41,18 +48,6 @@
         color: #2d3436;
         position: relative;
         padding-left: 1rem;
-    }
-
-    .finished-title::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 4px;
-        height: 24px;
-        background: linear-gradient(to bottom, #4350ff, #7296fa);
-        border-radius: 2px;
     }
 
     .finished-item {

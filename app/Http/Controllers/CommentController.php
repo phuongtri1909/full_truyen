@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Story;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 
@@ -133,7 +134,8 @@ class CommentController extends Controller
             'user_id' => auth()->id(),
             'comment' => $request->comment,
             'reply_id' => $request->reply_id,
-            'level' => $request->reply_id ? ($parentComment->level + 1) : 0
+            'level' => $request->reply_id ? ($parentComment->level + 1) : 0,
+            'story_id' => $request->story_id
         ]);
 
         $comment->load('user');
@@ -147,18 +149,18 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request,Story $story)
     {
         $search = $request->search;
         $userId = $request->user;
         $authUser = auth()->user();
 
-        $query = Comment::with(['user', 'replies']);
+        $query = $story->comments()->with(['user', 'replies']);
 
         // If mod, only show user and vip comments
         if ($authUser->role === 'mod') {
             $query->whereHas('user', function ($q) {
-                $q->whereIn('role', ['user', 'vip']);
+                $q->whereIn('role', ['user']);
             });
         }
 
@@ -183,7 +185,7 @@ class CommentController extends Controller
 
         $totalComments = Comment::count();
 
-        return view('admin.pages.comments.index', compact('comments', 'users', 'totalComments'));
+        return view('admin.pages.comments.index', compact('comments', 'users', 'totalComments', 'story'));
     }
 
     /**

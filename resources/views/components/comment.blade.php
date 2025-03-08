@@ -1,3 +1,177 @@
+<section id="comments" class="my-3 my-md-5">
+    <div class="container px-2 px-md-3">
+        <h5 class="mb-3">BÌNH LUẬN TRUYỆN</h5>
+        <div class="row">
+            <div class="col-12">
+                <div class="form-floating submit-comment">
+                    <textarea class="form-control" id="comment-input" placeholder="Nhập bình luận..." rows="2" maxlength="700"></textarea>
+                    <label for="comment-input">Bình luận</label>
+                    <button class="btn btn-sm btn-outline-info btn-send-comment" id="btn-comment">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </button>
+                </div>
+
+                <div class="blog-comment">
+                    <ul class="comments mb-0" id="comments-list">
+                        @include('components.comments-list', [
+                            'pinnedComments' => $pinnedComments,
+                            'regularComments' => $regularComments,
+                        ])
+                    </ul>
+                </div>
+
+                @if ($regularComments->hasMorePages())
+                    <div class="text-center mt-3">
+                        <button class="btn btn-link" id="load-more-comments">
+                            Xem thêm bình luận...
+                        </button>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</section>
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            let page = 1;
+            let isSubmitting = false;
+
+            $('#btn-comment').click(function() {
+                const btn = $(this);
+                const comment = $('#comment-input').val().trim();
+                if (!comment || isSubmitting) return;
+
+                // Disable button and show loading
+                isSubmitting = true;
+                btn.prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin"></i>');
+
+                $.ajax({
+                    url: '{{ route('comment.store.client') }}',
+                    type: 'POST',
+                    data: {
+                        comment: comment,
+                        story_id: '{{ $story->id }}',
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(res) {
+                        if (res.status === 'success') {
+                            $('#comments-list').prepend(res.html);
+                            $('#comment-input').val('');
+                            showToast(res.message, 'success');
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 401) {
+                            window.location.href = '{{ route('login') }}';
+                        } else {
+                            showToast(xhr.responseJSON.message || 'Có lỗi xảy ra', 'error');
+                        }
+                    },
+                    complete: function() {
+                        // Re-enable button and restore original state
+                        isSubmitting = false;
+                        btn.prop('disabled', false)
+                            .html('<i class="fa-regular fa-paper-plane"></i>');
+                    }
+                });
+            });
+
+            $('#load-more-comments').click(function() {
+                page++;
+                $.ajax({
+                    url: '{{ route('home') }}',
+                    data: {
+                        page: page,
+                        type: 'comments'
+                    },
+                    success: function(res) {
+                        $('#comments-list').append(res.html);
+                        if (!res.hasMore) {
+                            $('#load-more-comments').remove();
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log(xhr);
+
+                    }
+                });
+            });
+
+            $(document).on('click', '.reply-btn', function(e) {
+                e.preventDefault();
+                const commentId = $(this).data('id');
+                const replyForm = `
+            <div class="reply-form mt-2">
+                <div class="form-floating">
+                    <textarea class="form-control" placeholder="Nhập trả lời..." maxlength="700"></textarea>
+                    <label>Trả lời</label>
+                </div>
+                <button class="btn btn-sm btn-info mt-2 submit-reply" data-id="${commentId}">Gửi</button>
+            </div>
+        `;
+                $(this).closest('.post-comments').append(replyForm);
+                $(this).hide();
+            });
+
+            $(document).on('click', '.submit-reply', function() {
+                const btn = $(this);
+                const commentId = btn.data('id');
+                const reply = btn.closest('.reply-form').find('textarea').val().trim();
+
+                if (!reply || btn.prop('disabled')) return;
+
+                // Disable button and show loading
+                btn.prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin"></i>');
+
+                $.ajax({
+                    url: '{{ route('comment.store.client') }}',
+                    type: 'POST',
+                    data: {
+                        comment: reply,
+                        reply_id: commentId,
+                        story_id: '{{ $story->id }}',
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(res) {
+                        if (res.status === 'success') {
+                            let replyContainer = btn.closest('.post-comments').find(
+                                'ul.comments');
+                            let replyBtn = btn.closest('.post-comments').find('.reply-btn');
+
+                            // Create replies container if it doesn't exist
+                            if (replyContainer.length === 0) {
+                                btn.closest('.post-comments').append(
+                                    '<ul class="comments"></ul>');
+                                replyContainer = btn.closest('.post-comments').find(
+                                    'ul.comments');
+                            }
+
+                            replyContainer.append(res.html);
+                            btn.closest('.reply-form').remove();
+
+                            // Re-enable reply button with delay to ensure DOM is updated
+                            setTimeout(() => {
+                                replyBtn.css('display', 'inline-block');
+                            }, 100);
+
+                            showToast(res.message, 'success');
+                        }
+                    },
+                    error: function(xhr) {
+                        showToast(xhr.responseJSON.message || 'Có lỗi xảy ra', 'error');
+                        // Re-enable button on error
+                        btn.prop('disabled', false).text('Gửi');
+                    }
+                });
+            });
+        });
+    </script>
+@endpush
+
 @push('styles')
     <style>
         .blog-comment ul.comments ul {
@@ -89,9 +263,6 @@
         }
 
         .blog-comment .post-comments {
-
-            background: #fff;
-
             margin-bottom: 15px;
             position: relative;
         }
@@ -177,172 +348,4 @@
             }
         }
     </style>
-@endpush
-<section id="comments" class="my-3 my-md-5">
-    <div class="container px-2 px-md-3">
-        <h5 class="mb-3">BÌNH LUẬN TRUYỆN</h5>
-        <div class="row">
-            <div class="col-12">
-                <div class="form-floating submit-comment">
-                    <textarea class="form-control" id="comment-input" placeholder="Nhập bình luận..." rows="2" maxlength="700"></textarea>
-                    <label for="comment-input">Bình luận</label>
-                    <button class="btn btn-sm btn-outline-info btn-send-comment" id="btn-comment">
-                        <i class="fa-regular fa-paper-plane"></i>
-                    </button>
-                </div>
-
-                <div class="blog-comment">
-                    <ul class="comments mb-0" id="comments-list">
-                        @include('components.comments-list', ['pinnedComments' => $pinnedComments, 'regularComments' => $regularComments])
-                    </ul>
-                </div>
-
-                @if ($regularComments->hasMorePages())
-                    <div class="text-center mt-3">
-                        <button class="btn btn-link" id="load-more-comments">
-                            Xem thêm bình luận...
-                        </button>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</section>
-
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            let page = 1;
-            let isSubmitting = false;
-
-            $('#btn-comment').click(function() {
-                const btn = $(this);
-                const comment = $('#comment-input').val().trim();
-                if (!comment || isSubmitting) return;
-
-                // Disable button and show loading
-                isSubmitting = true;
-                btn.prop('disabled', true)
-                .html('<i class="fas fa-spinner fa-spin"></i>');
-
-                $.ajax({
-                    url: '{{ route('comment.store.client') }}',
-                    type: 'POST',
-                    data: {
-                        comment: comment,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(res) {
-                        if (res.status === 'success') {
-                            $('#comments-list').prepend(res.html);
-                            $('#comment-input').val('');
-                            showToast(res.message, 'success');
-                        }
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 401) {
-                            window.location.href = '{{ route('login') }}';
-                        } else {
-                            showToast(xhr.responseJSON.message || 'Có lỗi xảy ra', 'error');
-                        }
-                    },
-                    complete: function() {
-                        // Re-enable button and restore original state
-                        isSubmitting = false;
-                        btn.prop('disabled', false)
-                        .html('<i class="fa-regular fa-paper-plane"></i>');
-                    }
-                });
-            });
-
-            $('#load-more-comments').click(function() {
-                page++;
-                $.ajax({
-                    url: '{{ route('home') }}',
-                    data: {
-                        page: page,
-                        type: 'comments'
-                    },
-                    success: function(res) {
-                        $('#comments-list').append(res.html);
-                        if (!res.hasMore) {
-                            $('#load-more-comments').remove();
-                        }
-                    },
-                    error: function(xhr) {
-                        console.log(xhr);
-
-                    }
-                });
-            });
-
-            $(document).on('click', '.reply-btn', function(e) {
-                e.preventDefault();
-                const commentId = $(this).data('id');
-                const replyForm = `
-            <div class="reply-form mt-2">
-                <div class="form-floating">
-                    <textarea class="form-control" placeholder="Nhập trả lời..." maxlength="700"></textarea>
-                    <label>Trả lời</label>
-                </div>
-                <button class="btn btn-sm btn-info mt-2 submit-reply" data-id="${commentId}">Gửi</button>
-            </div>
-        `;
-                $(this).closest('.post-comments').append(replyForm);
-                $(this).hide();
-            });
-
-            $(document).on('click', '.submit-reply', function() {
-                const btn = $(this);
-                const commentId = btn.data('id');
-                const reply = btn.closest('.reply-form').find('textarea').val().trim();
-
-                if (!reply || btn.prop('disabled')) return;
-
-                // Disable button and show loading
-                btn.prop('disabled', true)
-                .html('<i class="fas fa-spinner fa-spin"></i>');
-
-                $.ajax({
-                    url: '{{ route('comment.store.client') }}',
-                    type: 'POST',
-                    data: {
-                        comment: reply,
-                        reply_id: commentId,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(res) {
-                        if (res.status === 'success') {
-                            let replyContainer = btn.closest('.post-comments').find(
-                                'ul.comments');
-                            let replyBtn = btn.closest('.post-comments').find('.reply-btn');
-
-                            // Create replies container if it doesn't exist
-                            if (replyContainer.length === 0) {
-                                btn.closest('.post-comments').append(
-                                    '<ul class="comments"></ul>');
-                                replyContainer = btn.closest('.post-comments').find(
-                                    'ul.comments');
-                            }
-
-                            replyContainer.append(res.html);
-                            btn.closest('.reply-form').remove();
-
-                            // Re-enable reply button with delay to ensure DOM is updated
-                            setTimeout(() => {
-                                replyBtn.css('display', 'inline-block');
-                            }, 100);
-
-                            showToast(res.message, 'success');
-                        }
-                    },
-                    error: function(xhr) {
-                        showToast(xhr.responseJSON.message || 'Có lỗi xảy ra', 'error');
-                        // Re-enable button on error
-                        btn.prop('disabled', false).text('Gửi');
-                    }
-                });
-            });
-        });
-    </script>
 @endpush

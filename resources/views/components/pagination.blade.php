@@ -1,19 +1,19 @@
 @props(['paginator'])
 
 @if ($paginator->hasPages())
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination pagination-sm flex-wrap justify-content-center gap-1">
+    <nav aria-label="Page navigation" class="pagination-container">
+        <ul class="pagination pagination-sm flex-wrap justify-content-center gap-2">
             {{-- First Page Link --}}
             <li class="page-item {{ $paginator->onFirstPage() ? 'disabled' : '' }}">
                 <a class="page-link" href="{{ $paginator->url(1) }}" aria-label="First">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
+                    <i class="fas fa-angle-double-left"></i>
                 </a>
             </li>
 
             {{-- Previous Page Link --}}
             <li class="page-item {{ $paginator->onFirstPage() ? 'disabled' : '' }}">
                 <a class="page-link" href="{{ $paginator->previousPageUrl() }}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
+                    <i class="fas fa-angle-left"></i>
                 </a>
             </li>
 
@@ -21,7 +21,7 @@
             @php
                 $currentPage = $paginator->currentPage();
                 $lastPage = $paginator->lastPage();
-                $delta = 2; // Number of pages to show before and after current page
+                $delta = 2;
             @endphp
 
             @for ($i = 1; $i <= $lastPage; $i++)

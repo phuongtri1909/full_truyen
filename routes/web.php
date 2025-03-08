@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\StoryController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\ChapterController;
@@ -14,8 +15,8 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialsController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\RecentlyReadController;
 use App\Http\Controllers\CommentReactionController;
-use App\Http\Controllers\StoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,8 +33,12 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 Route::group(['middleware' => 'check.ip.ban'], function () {
     Route::middleware(['check.ban:ban_login'])->group(function () {
         Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('story/{slug}', [HomeController::class, 'showStory'])->name('show.page.story');
+        Route::get('stories/{story}/chapters', [HomeController::class, 'chapters'])->name('chapters');
+        Route::get('stories/{story}/chapters/{chapter}', [HomeController::class, 'chapter'])->name('chapter');
 
         Route::middleware(['check.ban:ban_read'])->group(function () {
+
             Route::get('/chapter/{slug}', [HomeController::class, 'chapter'])->name('chapter');
             Route::get('/search-chapters', [HomeController::class, 'searchChapters'])->name('chapters.search');
         });
@@ -46,6 +51,7 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
         Route::post('update-password', [UserController::class, 'updatePassword'])->name('update.password');
 
         Route::group(['middleware' => 'auth'], function () {
+
             Route::middleware(['check.ban:ban_comment'])->group(function () {
                 Route::post('comment/store', [CommentController::class, 'storeClient'])->name('comment.store.client');
             });
@@ -79,22 +85,17 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
                     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
                     Route::PATCH('users/{user}', [UserController::class, 'update'])->name('users.update');
 
-
                     Route::resource('categories', CategoryController::class);
                     Route::resource('stories', StoryController::class);
+                    Route::resource('stories.chapters', ChapterController::class);
 
-                    Route::resource('chapters', ChapterController::class);
-
-                    Route::get('comments', [CommentController::class, 'index'])->name('comments.index');
+                    Route::get('stories/{story}/comments', [CommentController::class, 'index'])->name('stories.comments.index');
                     Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
                 
                     Route::delete('delete-comments/{comment}', [CommentController::class, 'deleteComment'])->name('delete.comments');
                 });
-            });
-
-           
+            });   
         });
-
 
 
         Route::group(['middleware' => 'guest'], function () {

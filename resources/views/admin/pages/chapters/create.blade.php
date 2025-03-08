@@ -7,7 +7,7 @@
 @section('content-auth')
 <div class="row">
     <div class="col-12">
-        <div class="card mb-4 mx-4">
+        <div class="card mb-0 mx-0 mx-md-4 mb-md-4">
             <div class="card-header pb-0 px-3">
                 <h5 class="mb-0">Tạo chương</h5>
             </div>
@@ -15,7 +15,7 @@
 
                 @include('admin.pages.components.success-error')
 
-                <form action="{{ route('chapters.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('stories.chapters.store',$story) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="col-md-6">
@@ -64,7 +64,7 @@
                         
                         <div class="col-md-12 text-center">
                             <button type="submit" class="btn bg-gradient-primary">Lưu</button>
-                            <a href="{{ route('chapters.index') }}" class="btn btn-secondary">Trở về</a>
+                            <a href="{{ route('stories.chapters.index',$story) }}" class="btn btn-secondary">Trở về</a>
                         </div>
                     </div>
                 </form>

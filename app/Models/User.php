@@ -33,6 +33,7 @@ class User extends Authenticatable
         'ban_read',
         'ip_address',
         'rating',
+        'recently_read'
     ];
 
     public function isBanLogin(): bool
@@ -89,5 +90,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'recently_read' => 'array'
     ];
 }

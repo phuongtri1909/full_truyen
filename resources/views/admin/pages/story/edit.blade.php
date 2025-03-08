@@ -3,7 +3,7 @@
 @section('content-auth')
 <div class="row">
     <div class="col-12">
-        <div class="card mb-4 mx-4">
+        <div class="card mb-0 mx-0 mx-md-4 mb-md-4">
             <div class="card-header pb-0">
                 <h5 class="mb-0">Chỉnh sửa truyện</h5>
             </div>
@@ -40,10 +40,13 @@
                             <div class="form-group">
                                 <label for="cover">Ảnh bìa</label>
                                 <input type="file" name="cover" id="cover" 
-                                       class="form-control @error('cover') is-invalid @enderror">
-                                @if($story->cover)
-                                    <img src="{{ Storage::url($story->cover) }}" class="img-thumbnail mt-2" style="max-height: 200px">
-                                @endif
+                                       class="form-control @error('cover') is-invalid @enderror"
+                                       onchange="previewImage(this)">
+                                <div id="cover-preview" class="mt-2">
+                                    @if($story->cover)
+                                        <img src="{{ Storage::url($story->cover) }}" class="img-thumbnail" style="max-height: 200px">
+                                    @endif
+                                </div>
                                 @error('cover')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -71,6 +74,20 @@
                                     <option value="published" {{ $story->status === 'published' ? 'selected' : '' }}>Xuất bản</option>
                                 </select>
                             </div>
+
+                            <div class="form-group mt-3">
+                                <div class="d-flex align-items-center">
+                                    <label class="mb-0 me-3" for="completed">Truyện đã hoàn thành</label>
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" 
+                                               name="completed" 
+                                               class="form-check-input" 
+                                               id="completed" 
+                                               role="switch"
+                                               {{ $story->completed ? 'checked' : '' }}>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-12 text-center mt-4">
@@ -84,3 +101,46 @@
     </div>
 </div>
 @endsection
+
+@push('scripts-admin')
+<script>
+    function previewImage(input) {
+        const preview = document.getElementById('cover-preview');
+        preview.innerHTML = '';
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('img-thumbnail', 'mt-2');
+                img.style.maxHeight = '200px';
+                preview.appendChild(img);
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+@endpush
+
+@push('styles')
+<style>
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: #2dce89;
+        border-color: #2dce89;
+    }
+    
+    .form-switch .form-check-input:focus {
+        border-color: rgba(45, 206, 137, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(45, 206, 137, 0.25);
+    }
+</style>
+@endpush
