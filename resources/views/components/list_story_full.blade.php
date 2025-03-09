@@ -7,7 +7,7 @@
     </div>
 
     <div class="row g-4">
-        @foreach($completedStories as $story)
+        @forelse($completedStories as $story)
             <div class="col-6 col-md-4 col-lg-2 finished-item">
                 <div class="finished-card">
                     <div class="finished-thumbnail">
@@ -31,7 +31,18 @@
                     </div>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="col-12">
+                <div class="empty-finished py-5 text-center">
+                    <div class="empty-icon mb-3">
+                        <i class="fas fa-book-reader text-muted" style="font-size: 3.5rem; opacity: 0.6;"></i>
+                    </div>
+                    <h4 class="empty-title mb-3">Chưa có truyện hoàn thành</h4>
+                    <p class="text-muted">Hiện tại chưa có truyện nào đã hoàn thành trong hệ thống.</p>
+                    <p class="text-muted">Vui lòng quay lại sau để xem các truyện đã hoàn thành mới nhất.</p>
+                </div>
+            </div>
+        @endforelse
     </div>
 </div>
 
@@ -169,6 +180,35 @@
         .finished-badge {
             font-size: 0.7rem;
             padding: 3px 10px;
+        }
+    }
+
+    /* Empty state styling */
+    .empty-finished {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin: 20px 0;
+    }
+
+    .empty-icon {
+        animation: pulse 2s infinite ease-in-out;
+    }
+
+    .empty-title {
+        color: #2d3436;
+        font-weight: 600;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        100% {
+            transform: scale(1);
         }
     }
 </style>
