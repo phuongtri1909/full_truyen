@@ -49,6 +49,12 @@
                                     </span>
                                 </td>
                                 <td class="text-center d-flex flex-column">
+                                    <a href="{{ route('stories.chapters.index', $story) }}" class="btn btn-link text-info p-1 mb-0">
+                                        <i class="fas fa-book-open text-info me-2"></i>Xem chương
+                                    </a>
+                                    <a href="{{ route('stories.comments.index', $story) }}" class="btn btn-link text-warning p-1 mb-0">
+                                        <i class="fas fa-comments text-warning me-2"></i>Xem bình luận
+                                    </a>
                                     <a href="{{ route('stories.edit', $story) }}" class="btn btn-link text-dark px-3 mb-0">
                                         <i class="fas fa-pencil-alt text-dark me-2"></i>Sửa
                                     </a>

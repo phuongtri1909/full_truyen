@@ -2,41 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Story;
 use App\Models\Rating;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class RatingController extends Controller
 {
 
     public function storeClient(Request $request)
     {
-        if (!auth()->check()) {
+        // Validate input
+        $validated = $request->validate([
+            'story_id' => 'required|exists:stories,id',
+            'rating' => 'required|integer|min:1|max:5',
+        ], [
+            'rating.min' => 'Đánh giá phải từ 1 đến 5 sao.',
+            'rating.max' => 'Đánh giá phải từ 1 đến 5 sao.',
+            'story_id.exists' => 'Truyện không tồn tại.',
+            'rating.required' => 'Vui lòng chọn số sao.',
+            'story_id.required' => 'Truyện không tồn tại.'
+        ]);
+        
+        if (!Auth::check()) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Vui lòng đăng nhập để đánh giá'
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để đánh giá truyện.'
             ], 401);
         }
-
-        $user = auth()->user();
         
-        if ($user->ban_rate) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tài khoản của bạn đã bị cấm đánh giá'
-            ], 403);
-        }
-
-        $request->validate([
-            'rating' => 'required|integer|between:1,5'
-        ]);
-
-        $user->rating = $request->rating;
-        $user->save();
-
+        $userId = Auth::id();
+        $storyId = $validated['story_id'];
+        $ratingValue = $validated['rating'];
+        
+        // Create or update the rating
+        $rating = Rating::updateOrCreate(
+            [
+                'user_id' => $userId,
+                'story_id' => $storyId
+            ],
+            [
+                'rating' => $ratingValue
+            ]
+        );
+        
+        // Get updated average rating for the story
+        $story = Story::find($storyId);
+        $averageRating = $story->ratings()->avg('rating');
+        $ratingsCount = $story->ratings()->count();
+        
         return response()->json([
-            'status' => 'success',
-            'message' => 'Đã cập nhật đánh giá',
-            'rating' => $request->rating
+            'success' => true,
+            'message' => 'Đánh giá của bạn đã được ghi nhận!',
+            'average' => round($averageRating, 1),
+            'count' => $ratingsCount,
+            'user_rating' => $ratingValue
         ]);
     }
 

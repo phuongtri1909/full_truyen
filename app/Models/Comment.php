@@ -20,6 +20,11 @@ class Comment extends Model
         'story_id',
     ];
 
+    protected $casts = [
+        'is_pinned' => 'boolean',
+        'pinned_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -40,6 +45,11 @@ class Comment extends Model
     public function replies()
     {
         return $this->hasMany(Comment::class, 'reply_id')->where('level', '<', 3);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Comment::class, 'reply_id');
     }
 
     public function reactions()

@@ -467,60 +467,238 @@ body {
     color: #333;
 }
 
+.bg-site{
+    background: linear-gradient(
+        45deg,
+        rgba(255, 182, 213, 0.95),
+        rgba(173, 216, 230, 0.95)
+    ) !important;
+}
 
 
 /* Add these styles for the sticky header */
 .transition-header {
-    background-color: transparent;
-    transition: all 0.3s ease;
-    padding: 1rem 0;
-}
-
-.transition-header.scrolled {
-    background-color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 0.5rem 0;
-}
-
-.navbar.fixed-top {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
     z-index: 1030;
-}
-
-.transition-header {
-    transition: all 0.3s ease;
+    background-color: transparent;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-bottom: 1px solid rgba(255, 255, 255, 0);
 }
 
 .transition-header.scrolled {
-    background: linear-gradient(45deg,
-        rgba(255, 182, 213, 0.95),    /* Light pink */
-        rgba(173, 216, 230, 0.95)     /* Light blue */
-    );
-    backdrop-filter: blur(10px);
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    animation: headerTransform 1.2s forwards cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-/* Update text colors for better contrast */
+@keyframes headerTransform {
+    0% {
+        background: linear-gradient(
+            45deg,
+            rgba(255, 182, 213, 0),
+            rgba(173, 216, 230, 0)
+        );
+        backdrop-filter: blur(0);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        border-bottom: 1px solid rgba(255, 255, 255, 0);
+    }
+    
+    15% {
+        backdrop-filter: blur(3px);
+        background: linear-gradient(
+            45deg,
+            rgba(255, 182, 213, 0.2),
+            rgba(173, 216, 230, 0.2)
+        );
+    }
+    
+    40% {
+        background: linear-gradient(
+            45deg,
+            rgba(255, 182, 213, 0.5),
+            rgba(173, 216, 230, 0.5)
+        );
+        backdrop-filter: blur(5px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    70% {
+        background: linear-gradient(
+            45deg,
+            rgba(255, 182, 213, 0.85),
+            rgba(173, 216, 230, 0.85)
+        );
+        backdrop-filter: blur(8px);
+        box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    100% {
+        background: linear-gradient(
+            45deg,
+            rgba(255, 182, 213, 0.95),
+            rgba(173, 216, 230, 0.95)
+        );
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
+}
+
+/* Animated gradient border on the bottom */
+.transition-header.scrolled::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(
+        to right,
+        rgba(255, 182, 213, 1),
+        rgba(173, 216, 230, 1)
+    );
+    animation: borderSlide 1.5s forwards cubic-bezier(0.16, 1, 0.3, 1);
+    animation-delay: 0.3s;
+}
+
+@keyframes borderSlide {
+    0% {
+        width: 0%;
+        opacity: 0;
+    }
+    100% {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+/* Add a subtle shimmer effect to the scrolled header */
+.transition-header.scrolled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg);
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -150%;
+    }
+    50% {
+        left: 150%;
+    }
+    100% {
+        left: 150%;
+    }
+}
+
+/* Animate the nav links when header scrolls */
+.transition-header .nav-link,
+.transition-header .navbar-brand,
+.transition-header .dropdown-toggle {
+    transition: all 0.5s ease;
+    position: relative;
+}
+
 .transition-header.scrolled .nav-link,
 .transition-header.scrolled .navbar-brand,
 .transition-header.scrolled .dropdown-toggle {
     color: #2d3436 !important;
+    transform: translateY(0);
+    animation: navItemDrop 0.5s forwards;
+    animation-delay: calc(var(--nav-item-order) * 0.05s);
 }
 
-/* Hover effect */
+@keyframes navItemDrop {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover effect with a more refined transition */
 .transition-header.scrolled .nav-link:hover,
 .transition-header.scrolled .dropdown-toggle:hover {
     color: #0984e3 !important;
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
 }
 
-/* Search input styling */
+.transition-header.scrolled .nav-link:hover::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        to right,
+        #0984e3,
+        #74b9ff
+    );
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+    animation: linkUnderline 0.3s forwards;
+}
+
+@keyframes linkUnderline {
+    0% {
+        transform: scaleX(0);
+        transform-origin: right;
+    }
+    100% {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+}
+
+/* Search input styling with enhanced transitions */
+.transition-header .search-input {
+    transition: all 0.5s ease;
+    opacity: 0.8;
+}
+
 .transition-header.scrolled .search-input {
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s ease-in-out;
+    opacity: 1;
+    animation: searchAppear 0.8s forwards;
+}
+
+@keyframes searchAppear {
+    0% {
+        opacity: 0;
+        transform: scaleX(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
 }
 
 .transition-header.scrolled .search-input:focus {
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    transform: scale(1.02);
 }
 
 /* login */
@@ -999,4 +1177,8 @@ body {
     .story-item {
         padding: 1rem;
     }
+}
+
+.fs-9 {
+    font-size: 0.7rem !important;
 }

@@ -12,7 +12,7 @@
                 <div class="finished-card">
                     <div class="finished-thumbnail">
                         <div class="finished-badge">FULL</div>
-                        <a href="{{ route('stories.show', $story->slug) }}">
+                        <a href="{{ route('show.page.story', $story->slug) }}">
                             <img src="{{ Storage::url($story->cover) }}" 
                                  alt="{{ $story->title }}" 
                                  class="img-fluid">
@@ -20,13 +20,13 @@
                     </div>
                     <div class="finished-info">
                         <h3 class="finished-name">
-                            <a class="fw-bold" href="{{ route('stories.show', $story->slug) }}">
+                            <a class="fw-bold" href="{{ route('show.page.story', $story->slug) }}">
                                 {{ $story->title }}
                             </a>
                         </h3>
                         <div class="finished-chapters">
                             <i class="fas fa-book-open text-danger"></i>
-                            <span class="fw-bold">{{ $story->chapters_count }}</span>
+                            <span class="fw-bold">{{ $story->chapters_count }} Chương</span>
                         </div>
                     </div>
                 </div>

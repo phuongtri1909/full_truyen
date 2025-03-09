@@ -1,8 +1,8 @@
 <section id="info-book-home">
-    <div class="container mt-3">
-        <div class="info-card-home h-100 rounded-4">
+    <div class=" mt-3">
+        <div class="info-card-home h-100">
             <div class="p-2 row">
-                <div class="col-12 col-md-2 d-flex justify-content-center flex-column mb-3 mb-md-0 ">
+                <div class="col-12 col-md-3 col-xl-2 col-xxl-2 d-flex flex-column mb-3 mb-md-0 ">
                     <div class="rounded-4 shadow">
                         <img src="{{ Storage::url($story->cover) }}" alt="{{ $story->title }}" class="img-fluid img-book">
                     </div>
@@ -10,22 +10,23 @@
                         <p class="mb-2 text-start">Thể loại:</p>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach ($storyCategories as $category)
-                                <a href="{{ route('categories.show', $category['slug']) }}" class="category-tag">
+                                <a href="{{ route('categories.story.show', $category['slug']) }}" class="category-tag fs-9">
                                     {{ $category['name'] }}
 
                                 </a>
                             @endforeach
                         </div>
                     </div>
-                    <div class="stat-item text-dark mt-2">
-                        Trạng thái : @if ($status->status == 'done')
+                    <div class="stat-item text-dark mt-2 d-flex">
+                        <p class="text-start mb-0 me-2">Trạng thái:</p>
+                        @if ($status->status == 'done')
                             <span class="text-success fw-bold">Hoàn Thành</span>
                         @else
                             <span class="text-primary fw-bold">Đang viết</span>
                         @endif
                     </div>
                 </div>
-                <div class="col-12 col-md-10 col-lg-7 ">
+                <div class="col-12 col-md-9 col-xl-10 col-xxl-8">
                     <div class="mb-3 text-start">
                         <h2 class="fw-semibold border-bottom">{{ $story->title }}</h2>
                     </div>
@@ -50,32 +51,61 @@
                     </div>
                     <div>
                         <p class="text-muted
-                            mt-4 mb-0 text-justify">{{ $story->description }}</p>
+                            mt-4 mb-0 text-justify">
+                            {{ $story->description }}</p>
                     </div>
 
                 </div>
 
-                <div class="col-12 col-lg-3 mt-3 mt-lg-0">
+                <div class="col-12 col-md-12 mt-3 col-xl-12 col-xxl-2 mt-lg-0 ">
                     <div class="info-card bg-white p-3 shadow">
                         <h6 class="info-title text-dark">ĐÁNH GIÁ</h6>
                         <div class="rating">
                             @php
-                                $rating = auth()->check() ? auth()->user()->rating ?? 0 : 0;
-                                $fullStars = floor($rating);
-                                $hasHalfStar = $rating - $fullStars >= 0.5;
+                                // Get user's rating for this story if they're logged in
+                                $userRating = 0;
+                                if (auth()->check()) {
+                                    $existingRating = \App\Models\Rating::where('user_id', auth()->id())
+                                        ->where('story_id', $story->id)
+                                        ->first();
+                                    $userRating = $existingRating ? $existingRating->rating : 0;
+                                }
+                                $fullStars = floor($userRating);
                             @endphp
 
-                            <div class="stars" id="rating-stars">
-                                @for ($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $fullStars ? 'full' : 'empty' }}"
-                                        data-rating="{{ $i }}"></i>
-                                @endfor
+                            <div class="stars-container">
+                                <div class="stars" id="rating-stars" data-story-id="{{ $story->id }}">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star rating-star {{ $i <= $fullStars ? 'full' : 'empty' }}"
+                                            data-rating="{{ $i }}"></i>
+                                    @endfor
+                                </div>
+                                <div id="rating-message">
+
+                                </div>
+
+                                @if (!auth()->check())
+                                    <div class="rating-login-message mt-2 text-muted small">
+                                        <a href="{{ route('login') }}">Đăng nhập</a> để đánh giá truyện!
+                                    </div>
+                                @endif
                             </div>
 
-                            <hr class="my-1">
+                            <hr class="my-2">
 
-                            <div class="mt-1"><span class="rating-number">Tổng: </span>
-                                {{ number_format($stats['ratings']['average'], 1) }}/5</div>
+                            <div class="rating-stats">
+                                <div class="mt-1">
+                                    <span class="rating-number">Tổng: </span>
+                                    <span
+                                        id="average-rating">{{ number_format($stats['ratings']['average'], 1) }}</span>/5
+                                    (<span id="ratings-count">{{ $stats['ratings']['count'] }}</span> đánh giá)
+                                </div>
+                                @if (auth()->check() && $userRating > 0)
+                                    <div class="mt-1 small text-muted">
+                                        Đánh giá của bạn: <span id="user-rating">{{ $userRating }}</span>/5
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,7 +150,8 @@
 
         /*  */
         .info-card-home {
-            background: #e1eef9;
+            background: #dcdcdc;
+            border-radius: 1rem;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
             text-align: center;
             transition: transform 0.3s ease;
@@ -138,7 +169,7 @@
         .img-book {
             transition: transform 0.3s ease;
             width: 100%;
-            height: 300px;
+            height: 100%;
             object-fit: cover;
 
         }
@@ -169,5 +200,227 @@
             max-width: 300px;
             margin: 0 auto;
         }
+
+        .stars {
+            display: flex;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .rating-star {
+            margin: 0 2px;
+            transition: all 0.2s ease;
+        }
+
+        .rating-star.empty {
+            color: #e0e0e0;
+        }
+
+        .rating-star.full {
+            color: #ffc107;
+        }
+
+        .rating-star.hover {
+            color: #ffc107;
+            transform: scale(1.2);
+        }
+
+        .rating-loading {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: #6c757d;
+        }
+
+        .rating-success,
+        .rating-error {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .stars-container {
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .rating-stats {
+            font-size: 0.9rem;
+        }
+
+        #average-rating {
+            font-weight: bold;
+            color: #ffc107;
+        }
     </style>
+@endpush
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ratingStars = document.querySelectorAll('.rating-star');
+            const starsContainer = document.getElementById('rating-stars');
+            const storyId = starsContainer ? starsContainer.getAttribute('data-story-id') : null;
+            const ratingMessage = document.getElementById('rating-message');
+
+            // Only set up rating functionality if we have stars and a story ID
+            if (ratingStars.length > 0 && storyId) {
+                // Star hover effect
+                ratingStars.forEach(star => {
+                    star.addEventListener('mouseover', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        highlightStars(rating);
+                    });
+
+                    star.addEventListener('click', function() {
+                        @if (auth()->check())
+                            const rating = parseInt(this.getAttribute('data-rating'));
+                            submitRating(rating);
+                        @else
+                            window.location.href = "{{ route('login') }}";
+                        @endif
+                    });
+                });
+
+                // Reset stars on mouse out of the container
+                starsContainer.addEventListener('mouseout', function() {
+                    resetStars();
+                });
+
+                // Function to highlight stars up to a certain rating
+                function highlightStars(rating) {
+                    ratingStars.forEach(star => {
+                        const starRating = parseInt(star.getAttribute('data-rating'));
+                        if (starRating <= rating) {
+                            star.classList.add('hover');
+                            star.classList.remove('empty');
+                        } else {
+                            star.classList.remove('hover');
+                            star.classList.remove('full');
+                            star.classList.add('empty');
+                        }
+                    });
+                }
+
+                // Function to reset stars to their original state
+                function resetStars() {
+                    const userRating = {{ $userRating ?? 0 }};
+                    ratingStars.forEach(star => {
+                        star.classList.remove('hover');
+                        const starRating = parseInt(star.getAttribute('data-rating'));
+                        if (starRating <= userRating) {
+                            star.classList.add('full');
+                            star.classList.remove('empty');
+                        } else {
+                            star.classList.remove('full');
+                            star.classList.add('empty');
+                        }
+                    });
+                }
+
+                // Function to submit the rating via AJAX
+                function submitRating(rating) {
+                    // Remove any existing loading indicator first (to avoid duplicates)
+                    const existingIndicator = ratingMessage.querySelector('.rating-loading');
+                    if (existingIndicator) {
+                        ratingMessage.removeChild(existingIndicator);
+                    }
+                    
+                    // Create a loading indicator
+                    const loadingIndicator = document.createElement('div');
+                    loadingIndicator.className = 'rating-loading';
+                    loadingIndicator.textContent = 'Đang gửi...';
+                    ratingMessage.appendChild(loadingIndicator);
+
+                    // Disable stars during submission
+                    ratingStars.forEach(star => {
+                        star.style.pointerEvents = 'none';
+                    });
+
+                    // Send the AJAX request
+                    fetch("{{ route('ratings.store') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                story_id: storyId,
+                                rating: rating
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Remove loading indicator
+                            ratingMessage.removeChild(loadingIndicator);
+
+                            // Re-enable stars
+                            ratingStars.forEach(star => {
+                                star.style.pointerEvents = 'auto';
+                            });
+
+                            if (data.success) {
+                                // Update UI with new values
+                                document.getElementById('average-rating').textContent = data.average;
+                                document.getElementById('ratings-count').textContent = data.count;
+
+                                // Update user rating display
+                                let userRatingElement = document.getElementById('user-rating');
+                                if (!userRatingElement) {
+                                    // Create the user rating element if it doesn't exist
+                                    const ratingStats = document.querySelector('.rating-stats');
+                                    const userRatingDiv = document.createElement('div');
+                                    userRatingDiv.className = 'mt-1 small text-muted';
+                                    userRatingDiv.innerHTML = 'Đánh giá của bạn: <span id="user-rating">' + data
+                                        .user_rating + '</span>/5';
+                                    ratingStats.appendChild(userRatingDiv);
+                                } else {
+                                    userRatingElement.textContent = data.user_rating;
+                                }
+
+                                // Show success message using showToast
+                                showToast(data.message, 'success');
+
+                                // Update the active stars
+                                ratingStars.forEach(star => {
+                                    const starRating = parseInt(star.getAttribute('data-rating'));
+                                    if (starRating <= data.user_rating) {
+                                        star.classList.add('full');
+                                        star.classList.remove('empty');
+                                    } else {
+                                        star.classList.remove('full');
+                                        star.classList.add('empty');
+                                    }
+                                });
+                            } else {
+                                // Show error message using showToast
+                                showToast(data.message || 'Có lỗi xảy ra', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            // Remove loading indicator
+                            ratingMessage.removeChild(loadingIndicator);
+
+                            // Re-enable stars
+                            ratingStars.forEach(star => {
+                                star.style.pointerEvents = 'auto';
+                            });
+
+                            // Show error message using showToast
+                            showToast('Đã xảy ra lỗi khi gửi đánh giá', 'error');
+
+                            console.error('Error submitting rating:', error);
+                        });
+                }
+            }
+        });
+    </script>
 @endpush

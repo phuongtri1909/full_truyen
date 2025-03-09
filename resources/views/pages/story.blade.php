@@ -61,41 +61,41 @@
 @endpush
 
 @section('content')
-    <div class=""></div>
+    <section id="page-story" class="container-md">
+        <div class=""></div>
 
-    @include('components.info_book_home')
-
-
-    <div class="container mt-4">
+        @include('components.info_book_home')
 
 
+        <div class=" mt-4">
 
-        <div class="" id="chapters">
-            @if (!Auth()->check() || (Auth()->check() && Auth()->user()->ban_read == false))
-                @include('components.all_chapter', ['chapters' => $chapters])
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-sad-tear fa-4x text-muted mb-3 animate__animated animate__shakeX"></i>
-                    <h5 class="text-danger">Bạn đã bị cấm đọc truyện!</h5>
-                </div>
-            @endif
+            <div class="" id="chapters">
+                @if (!Auth()->check() || (Auth()->check() && Auth()->user()->ban_read == false))
+                    @include('components.all_chapter', ['chapters' => $chapters])
+                @else
+                    <div class="text-center py-5">
+                        <i class="fas fa-sad-tear fa-4x text-muted mb-3 animate__animated animate__shakeX"></i>
+                        <h5 class="text-danger">Bạn đã bị cấm đọc truyện!</h5>
+                    </div>
+                @endif
+            </div>
+
+            <div class="" id="comments">
+                @if (!Auth()->check() || (Auth()->check() && Auth()->user()->ban_comment == false))
+                    @include('components.comment', [
+                        'pinnedComments' => $pinnedComments,
+                        'regularComments' => $regularComments,
+                    ])
+                @else
+                    <div class="text-center py-5">
+                        <i class="fas fa-sad-tear fa-4x text-muted mb-3 animate__animated animate__shakeX"></i>
+                        <h5 class="text-danger">Bạn đã bị cấm bình luận!</h5>
+                    </div>
+                @endif
+            </div>
+
         </div>
-
-        <div class="" id="comments">
-            @if (!Auth()->check() || (Auth()->check() && Auth()->user()->ban_comment == false))
-                @include('components.comment', [
-                    'pinnedComments' => $pinnedComments,
-                    'regularComments' => $regularComments,
-                ])
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-sad-tear fa-4x text-muted mb-3 animate__animated animate__shakeX"></i>
-                    <h5 class="text-danger">Bạn đã bị cấm bình luận!</h5>
-                </div>
-            @endif
-        </div>
-
-    </div>
+    </section>
 
 @endsection
 

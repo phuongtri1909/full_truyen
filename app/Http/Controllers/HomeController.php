@@ -9,10 +9,56 @@ use App\Models\Status;
 use App\Models\Chapter;
 use App\Models\Comment;
 use App\Models\Socials;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Services\ReadingHistoryService;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
+
+    public function searchHeader(Request $request)
+    {
+        $query = $request->input('query');
+
+        // Search in stories and chapters
+        $stories = Story::query()
+            ->published()
+            ->where('title', 'LIKE', "%{$query}%")
+            ->orWhereHas('chapters', function ($q) use ($query) {
+                $q->where('status', 'published')
+                    ->where('title', 'LIKE', "%{$query}%")
+                    ->orWhere('content', 'LIKE', "%{$query}%");
+            })
+            ->orWhereHas('categories', function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%");
+            })
+            ->with(['categories', 'chapters'])
+            ->paginate(20);
+
+        return view('pages.search.results', [
+            'stories' => $stories,
+            'query' => $query,
+            'isSearch' => true
+        ]);
+    }
+
+    public function showStoryCategories($slug)
+    {
+
+        $category = Category::where('slug', $slug)->firstOrFail();
+        
+        $stories = $category->stories()
+            ->published()
+            ->with(['categories', 'chapters'])
+            ->paginate(20);
+            
+        return view('pages.search.results', [
+            'stories' => $stories,
+            'currentCategory' => $category,
+            'isSearch' => false
+        ]);
+    }
 
     public function index(Request $request)
     {
@@ -23,17 +69,11 @@ class HomeController extends Controller
         $newStories = $this->getNewStories($request);
 
         // Get completed stories
-        $completedStories = Story::with(['chapters' => function($query) {
-                $query->select('id', 'story_id', 'number')
-                      ->latest();
-            }, 'categories'])
+        $completedStories = Story::with(['categories'])
             ->published()
-            ->where('completed', true) // Using the completed column
-            ->withCount(['chapters' => function($query) {
-                $query->published();
-            }])
-            ->whereHas('chapters', function($query) {
-                $query->published();
+            ->where('completed', true)
+            ->whereHas('chapters', function ($query) {
+                $query->where('status', 'published'); // Chỉ lấy truyện có chương đã xuất bản
             })
             ->select([
                 'id',
@@ -43,9 +83,14 @@ class HomeController extends Controller
                 'completed',
                 'updated_at'
             ])
+            ->withCount(['chapters' => function ($query) {
+                $query->where('status', 'published'); // Chỉ đếm chương đã xuất bản
+            }])
             ->latest('updated_at')
             ->take(18)
             ->get();
+
+        //dd($completedStories);
 
         // Handle AJAX requests
         if ($request->ajax()) {
@@ -65,31 +110,31 @@ class HomeController extends Controller
 
     private function getHotStories($request)
     {
-        // Move existing hot stories logic here
         $query = Story::with(['chapters' => function ($query) {
-            $query->select('id', 'story_id', 'views', 'created_at');
+            $query->select('id', 'story_id', 'views', 'created_at')
+                ->where('status', 'published'); // Chỉ lấy chương đã xuất bản
         }])
-        ->published()
-        ->withCount(['chapters' => function ($query) {
-            $query->published();
-        }])
-        ->whereHas('chapters', function ($query) {
-            $query->published();
-        })
-        ->select([
-            'id',
-            'title',
-            'slug',
-            'cover',
-            'description',
-            'created_at',
-            'updated_at'
-        ])
-        ->where('updated_at', '>=', now()->subDays(30));
+            ->published()
+            ->whereHas('chapters', function ($query) {
+                $query->where('status', 'published'); // Chỉ lấy truyện có chương đã xuất bản
+            })
+            ->select([
+                'id',
+                'title',
+                'slug',
+                'cover',
+                'description',
+                'created_at',
+                'updated_at'
+            ])
+            ->withCount(['chapters' => function ($query) {
+                $query->where('status', 'published');
+            }])
+            ->where('updated_at', '>=', now()->subDays(30));
 
         // Apply category filter if selected
         if ($request->category_id) {
-            $query->whereHas('categories', function($q) use ($request) {
+            $query->whereHas('categories', function ($q) use ($request) {
                 $q->where('categories.id', $request->category_id);
             });
         }
@@ -101,13 +146,12 @@ class HomeController extends Controller
             })
             ->sortByDesc('hot_score')
             ->take(12);
-
         return $hotStories;
     }
 
     private function calculateHotScore($story)
     {
-        // Get total views of all chapters
+        // Get total views of all chapters (đã lọc published trong getHotStories)
         $totalViews = $story->chapters->sum('views');
 
         // Get average views per chapter
@@ -116,6 +160,7 @@ class HomeController extends Controller
 
         // Get views in last 7 days
         $recentViews = $story->chapters()
+            ->where('status', 'published') // Chỉ đếm chương đã xuất bản
             ->where('created_at', '>=', now()->subDays(7))
             ->sum('views');
 
@@ -141,45 +186,43 @@ class HomeController extends Controller
 
     private function getNewStories($request)
     {
-        $query = Story::with(['chapters' => function($query) {
-                $query->select('id', 'story_id', 'title', 'number', 'views', 'created_at')
-                      ->latest();
-            }, 'categories'])
+        // Truy vấn truyện với chương mới nhất
+        $query = Story::with(['latestChapter' => function ($query) {
+            $query->select('id', 'story_id', 'title', 'slug', 'number', 'views', 'created_at', 'status')
+                ->where('status', 'published'); // Chỉ lấy chương đã xuất bản
+        }, 'categories'])
             ->published()
-            ->withCount(['chapters' => function($query) {
-                $query->published();
-            }])
-            ->whereHas('chapters', function($query) {
-                $query->published();
-            })
             ->select([
                 'id',
                 'title',
                 'slug',
                 'cover',
-                'status'
+                'status',
+                'completed'
             ])
-            ->whereHas('chapters', function($query) {
-                $query->where('created_at', '>=', now()->subDays(30));
+            ->whereHas('chapters', function ($query) {
+                $query->where('status', 'published'); // Chỉ lấy truyện có chương đã xuất bản
             });
 
+        // Áp dụng bộ lọc danh mục nếu có
         if ($request->category_id) {
-            $query->whereHas('categories', function($q) use ($request) {
+            $query->whereHas('categories', function ($q) use ($request) {
                 $q->where('categories.id', $request->category_id);
             });
         }
 
-        return $query->orderByDesc(function($query) {
-                $query->select('created_at')
-                      ->from('chapters')
-                      ->whereColumn('story_id', 'stories.id')
-                      ->latest()
-                      ->limit(1);
-            })
+        // Sắp xếp theo thời gian chương mới nhất
+        return $query->orderByDesc(function ($query) {
+            $query->select('created_at')
+                ->from('chapters')
+                ->whereColumn('story_id', 'stories.id')
+                ->where('status', 'published') // Chỉ xét chương đã xuất bản
+                ->latest()
+                ->limit(1);
+        })
             ->take(20)
             ->get();
     }
-
     public function showStory(Request $request, $slug)
     {
         $story = Story::where('slug', $slug)->firstOrFail();
@@ -195,8 +238,8 @@ class HomeController extends Controller
 
         // Calculate stats
         $stats = [
-            'total_chapters' => Chapter::where('story_id', $story->id)->published()->count(),
-            'total_views' => Chapter::where('story_id', $story->id)->sum('views'),
+            'total_chapters' => $story->chapters()->published()->count(),
+            'total_views' => $story->chapters()->sum('views'),
             'ratings' => [
                 'count' => Rating::where('story_id', $story->id)->count(),
                 'average' => Rating::where('story_id', $story->id)->avg('rating') ?? 0
@@ -209,7 +252,7 @@ class HomeController extends Controller
         ];
 
         // Get category list with story count
-        $storyCategories = $story->categories->map(function($category) {
+        $storyCategories = $story->categories->map(function ($category) {
             return [
                 'id' => $category->id,
                 'name' => $category->name,
@@ -223,49 +266,44 @@ class HomeController extends Controller
             ->orderBy('number', 'desc')
             ->paginate(50);
 
-        // Calculate chapter ranges for dropdown
-        $totalChapters = $story->chapters()->published()->count();
-        $rangeSize = 50;
-        $ranges = [];
-        
-        for ($i = 1; $i <= $totalChapters; $i += $rangeSize) {
-            $ranges[] = [
-                'start' => $i,
-                'end' => min($i + $rangeSize - 1, $totalChapters)
-            ];
-        }
-
         // Get comments
-        $pinnedComments = Comment::with('user')
+        $pinnedComments = Comment::with(['user', 'replies.user', 'reactions'])
             ->where('story_id', $story->id)
+            ->whereNull('reply_id')
             ->where('is_pinned', true)
-            ->orderBy('created_at', 'desc')
+            ->latest('pinned_at')
             ->get();
 
-        $regularComments = Comment::with('user')
+        $regularComments = Comment::with(['user', 'replies.user', 'reactions'])
             ->where('story_id', $story->id)
+            ->whereNull('reply_id')
             ->where('is_pinned', false)
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->paginate(10);
 
-        
-        
+
+
         return view('pages.story', compact(
             'story',
             'stats',
             'status',
             'chapters',
-            'ranges',
             'pinnedComments',
             'regularComments',
-            'storyCategories' // Add this to the view data
+            'storyCategories'
         ));
     }
 
-    public function chapter($slug)
+    public function chapterByStory($storySlug, $chapterSlug)
     {
-        $query = Chapter::where('slug', $slug);
+        // First find the story by slug
+        $story = Story::where('slug', $storySlug)->firstOrFail();
 
+        // Then find the chapter that belongs to this story
+        $query = Chapter::where('slug', $chapterSlug)
+            ->where('story_id', $story->id);
+
+        // Apply permissions
         if (auth()->check()) {
             if (in_array(auth()->user()->role, ['admin', 'mod'])) {
                 // Admin and mod can see all chapters
@@ -279,7 +317,7 @@ class HomeController extends Controller
             $chapter = $query->where('status', 'published')->firstOrFail();
         }
 
-        // Get client IP
+        // Get client IP for view count
         $ip = request()->ip();
         $sessionKey = "chapter_view_{$chapter->id}_{$ip}";
 
@@ -289,16 +327,16 @@ class HomeController extends Controller
             session()->put($sessionKey, true, 1440);
         }
 
-        $chapter->count = User::whereNotNull('rating')->count();
-        $chapter->stars = round(User::whereNotNull('rating')->avg('rating'), 1) ?? 0;
-
         $wordCount = str_word_count(strip_tags($chapter->content), 0, 'àáãạảăắằẳẵặâấầẩẫậèéẹẻẽêềếểễệđìíĩỉịòóõọỏôốồổỗộơớờởỡợùúũụủưứừửữựỳýỵỷỹ');
         $chapter->word_count = $wordCount;
 
-        $nextChapterQuery = Chapter::where('number', '>', $chapter->number)
+        // Find next and previous chapters
+        $nextChapterQuery = Chapter::where('story_id', $story->id)
+            ->where('number', '>', $chapter->number)
             ->orderBy('number', 'asc');
 
-        $prevChapterQuery = Chapter::where('number', '<', $chapter->number)
+        $prevChapterQuery = Chapter::where('story_id', $story->id)
+            ->where('number', '<', $chapter->number)
             ->orderBy('number', 'desc');
 
         // Apply published filter for non-admin/mod users    
@@ -310,7 +348,9 @@ class HomeController extends Controller
         $nextChapter = $nextChapterQuery->first();
         $prevChapter = $prevChapterQuery->first();
 
-        $recentChaptersQuery = Chapter::where('id', '!=', $chapter->id)
+        // Get recent chapters from this story
+        $recentChaptersQuery = Chapter::where('story_id', $story->id)
+            ->where('id', '!=', $chapter->id)
             ->orderBy('number', 'desc')
             ->take(5);
 
@@ -320,18 +360,34 @@ class HomeController extends Controller
 
         $recentChapters = $recentChaptersQuery->get();
 
+        // Lưu tiến độ đọc
+        $readingService = new ReadingHistoryService();
+        $readingService->saveReadingProgress($story, $chapter);
+
+        // Lấy danh sách truyện đọc gần đây
+        $recentReads = $readingService->getRecentReadings(5);
+
         return view('pages.chapter', compact(
             'chapter',
+            'story',
             'nextChapter',
             'prevChapter',
-            'recentChapters'
+            'recentChapters',
+            'recentReads'
         ));
     }
 
     public function searchChapters(Request $request)
     {
         $searchTerm = $request->search;
+        $storyId = $request->story_id;
+
         $query = Chapter::query();
+
+        // Filter by story ID when provided
+        if ($storyId) {
+            $query->where('story_id', $storyId);
+        }
 
         // Visibility check
         if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'mod'])) {
@@ -351,7 +407,7 @@ class HomeController extends Controller
             });
         }
 
-        $chapters = $query->orderBy('number', 'desc')->get();
+        $chapters = $query->orderBy('number', 'desc')->take(20)->get();
 
         return response()->json([
             'html' => view('components.search-results', compact('chapters'))->render()

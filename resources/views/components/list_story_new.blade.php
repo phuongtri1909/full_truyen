@@ -29,57 +29,10 @@
         <!-- Sidebar -->
         <div class="col-12 col-sm-5 col-md-4">
             <!-- Recently Read Stories -->
-            <div class="sidebar-widget recent-reads">
-                <div class="widget-header">
-                    <h3 class="widget-title">
-                        <i class="fas fa-history text-primary me-2 fa-xl text-info"></i>Đọc Gần Đây
-                    </h3>
-                </div>
-                <div class="widget-content">
-                    @for ($i = 1; $i <= 5; $i++)
-                        <div class="recent-story-item">
-                            <div class="d-flex align-items-center">
-                                <div class="story-thumb-wrapper">
-                                    <img src="https://fastly.picsum.photos/id/23/50/65.jpg" 
-                                         class="recent-story-thumb" alt="Story thumbnail">
-                                </div>
-                                <div class="story-info">
-                                    <h4 class="recent-story-title">
-                                        <a href="#">Truyện Đã Đọc {{ $i }}</a>
-                                    </h4>
-                                    <div class="reading-progress">
-                                        <div class="progress-label">Đọc đến: Chương 45</div>
-                                        <div class="progress">
-                                            <div class="progress-bar" style="width: 45%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endfor
-                </div>
-            </div>
+            @include('components.recent-reads')
 
             <!-- Categories Widget -->
-            <div class="sidebar-widget categories-widget">
-                <div class="widget-header">
-                    <h3 class="widget-title">
-                        <i class="fas fa-tags text-primary me-2"></i>Thể Loại
-                    </h3>
-                </div>
-                <div class="widget-content">
-                    <div class="category-grid">
-                        @foreach ($categories as $category)
-                            <a href="{{ route('categories.show', $category) }}" 
-                               class="category-item" 
-                               data-stories="{{ $category->stories_count }}">
-                                <span class="category-name">{{ $category->name }}</span>
-                                <span class="story-count">{{ $category->stories_count }}</span>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+            <x-categories-widget :categories="$categories" :is-search="true" />
         </div>
     </div>
 </section>
@@ -182,29 +135,7 @@
                 color: #007bff;
             }
 
-            .category-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-
-            .category-item {
-                display: block;
-                padding: 8px;
-                background: #f8f9fa;
-                color: #333;
-                text-decoration: none;
-                border-radius: 4px;
-                text-align: center;
-                transition: all 0.3s;
-            }
-
-            .category-item:hover {
-                background: #007bff;
-                color: white;
-                transform: translateY(-2px);
-            }
-
+           
             /* Responsive adjustments */
             @media (max-width: 768px) {
                 .story-title {
@@ -213,10 +144,6 @@
 
                 .story-meta {
                     font-size: 0.85rem;
-                }
-
-                .category-grid {
-                    grid-template-columns: repeat(2, 1fr);
                 }
             }
 

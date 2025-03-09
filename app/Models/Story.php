@@ -72,5 +72,12 @@ class Story extends Model
             $this->total_views / $this->chapters_count : 0;
     }
 
+    public function latestChapter()
+    {
+        return $this->hasOne(Chapter::class)
+            ->where('status', 'published')
+            ->orderByDesc('number');
+    }
+
     protected $with = ['categories'];
 }

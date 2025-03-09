@@ -35,6 +35,10 @@ class User extends Authenticatable
         'rating',
         'recently_read'
     ];
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
 
     public function isBanLogin(): bool
     {

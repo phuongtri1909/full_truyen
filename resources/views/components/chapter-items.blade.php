@@ -4,7 +4,7 @@
         <ul class="chapter-list text-muted">
             @foreach ($chapters as $chapter)
                 <li class="mt-2">
-                    <a href="{{ route('chapter', $chapter->slug) }}" class="text-muted">
+                    <a href="{{ route('chapter', ['storySlug' => $story->slug, 'chapterSlug' => $chapter->slug]) }}" class="text-muted">
                         <span class="date">
                             <span>{{ $chapter->created_at->format('d') }}</span>
                             <span class="fs-7">{{ $chapter->created_at->format('M') }}</span>
@@ -29,7 +29,7 @@
         <ul class="chapter-list text-muted">
             @foreach ($chapters->take(ceil($chapters->count() / 2)) as $chapter)
                 <li class="mt-2">
-                    <a href="{{ route('chapter', $chapter->slug) }}" class="text-muted">
+                    <a href="{{ route('chapter', ['storySlug' => $story->slug, 'chapterSlug' => $chapter->slug]) }}" class="text-muted">
                         <span class="date">
                             <span>{{ $chapter->created_at->format('d') }}</span>
                             <span class="fs-7">{{ $chapter->created_at->format('M') }}</span>
@@ -52,7 +52,7 @@
         <ul class="chapter-list text-muted">
             @foreach ($chapters->skip(ceil($chapters->count() / 2)) as $chapter)
                 <li class="mt-2">
-                    <a href="{{ route('chapter', $chapter->slug) }}" class="text-muted">
+                    <a href="{{ route('chapter', ['storySlug' => $story->slug, 'chapterSlug' => $chapter->slug]) }}" class="text-muted">
                         <span class="date">
                             <span>{{ $chapter->created_at->format('d') }}</span>
                             <span class="fs-7">{{ $chapter->created_at->format('M') }}</span>

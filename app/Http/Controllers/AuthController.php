@@ -2,18 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\OTPForgotPWMail;
 use Exception;
 use App\Models\User;
 use App\Mail\OTPMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Mail\OTPForgotPWMail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Services\ReadingHistoryService;
 
 class AuthController extends Controller
 {
+
+    protected $readingService;
+
+    public function __construct(ReadingHistoryService $readingService)
+    {
+        $this->readingService = $readingService;
+    }
+
     public function register(Request $request)
     {
 
@@ -183,20 +192,30 @@ class AuthController extends Controller
 
             $user->ip_address = $request->ip();
             $user->save();
+            // Chuyển dữ liệu đọc từ session sang user
+            $readingService = new ReadingHistoryService();
+            $readingService->migrateSessionReadingsToUser($user->id);
 
             if ($user->role == 'admin') {
                 return redirect()->route('admin.dashboard');
             }
 
+            
             return redirect()->route('home');
         } catch (Exception $e) {
             return redirect()->back()->withInput()->with('error', 'Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại sau.');
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
+        if (Auth::check()) {
+            $this->readingService->copyUserReadingsToSession(Auth::id());
+        }
         Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect()->route(('home'));
     }
 

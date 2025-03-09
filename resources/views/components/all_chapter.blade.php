@@ -8,10 +8,11 @@
     </style>
 @endpush
 
-<section id="all-chapter">
+<section id="all-chapter" class="mt-5">
     <div class="container">
-        <div class="section-title d-flex justify-content-between align-items-center">
-            <h5>DANH SÁCH CHƯƠNG</h5>
+        <div class="section-title d-flex align-items-baseline ">
+            <i class="fa-solid fa-book-open fa-xl text-danger"></i>
+            <h5 class="fw-bold ms-2">DANH SÁCH CHƯƠNG</h5>
 
         </div>
          

@@ -12,6 +12,7 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReadingController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialsController;
 use App\Http\Controllers\CategoryController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\CommentReactionController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::group(['middleware' => 'check.ip.ban'], function () {
@@ -37,13 +39,24 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
         Route::get('stories/{story}/chapters', [HomeController::class, 'chapters'])->name('chapters');
         Route::get('stories/{story}/chapters/{chapter}', [HomeController::class, 'chapter'])->name('chapter');
 
-        Route::middleware(['check.ban:ban_read'])->group(function () {
+        Route::get('/search', [HomeController::class,'searchHeader'])->name('searchHeader');
 
-            Route::get('/chapter/{slug}', [HomeController::class, 'chapter'])->name('chapter');
+        Route::get('/contact', function () {
+            return view('pages.contact');
+        })->name('contact');
+
+        // Route for viewing stories by category
+        Route::get('/categories-story/{slug}', [HomeController::class,'showStoryCategories'])->name('categories.story.show');
+
+        Route::middleware(['check.ban:ban_read'])->group(function () {
+            Route::get('/story/{storySlug}/{chapterSlug}', [HomeController::class, 'chapterByStory'])->name('chapter');
             Route::get('/search-chapters', [HomeController::class, 'searchChapters'])->name('chapters.search');
+            Route::post('/reading/save-progress', [ReadingController::class, 'saveProgress'])
+                ->name('reading.save-progress');
         });
 
-        Route::post('/comments/{comment}/react', [CommentReactionController::class, 'react'])->name('comments.react');
+        Route::post('/comments/{comment}/react', [CommentController::class, 'react'])->name('comments.react');
+        Route::get('/stories/{storyId}/comments', [CommentController::class, 'loadComments'])->name('comments.load');
 
         Route::get('profile', [UserController::class, 'userProfile'])->name('profile');
         Route::post('update-profile/update-name-or-phone', [UserController::class, 'updateNameOrPhone'])->name('update.name.or.phone');
@@ -91,10 +104,10 @@ Route::group(['middleware' => 'check.ip.ban'], function () {
 
                     Route::get('stories/{story}/comments', [CommentController::class, 'index'])->name('stories.comments.index');
                     Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-                
+
                     Route::delete('delete-comments/{comment}', [CommentController::class, 'deleteComment'])->name('delete.comments');
                 });
-            });   
+            });
         });
 
 

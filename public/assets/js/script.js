@@ -158,3 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     counters.forEach(counter => observer.observe(counter))
 })
+
+// Add this to your JS file that handles the scroll event
+document.addEventListener('DOMContentLoaded', function() {
+    const navItems = document.querySelectorAll('.transition-header .nav-link, .transition-header .dropdown-toggle');
+    navItems.forEach((item, index) => {
+        item.style.setProperty('--nav-item-order', index);
+    });
+});

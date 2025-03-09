@@ -8,7 +8,7 @@
     
     @foreach ($chapters as $chapter)
         <url>
-            <loc>{{ route('chapter', $chapter->slug) }}</loc>
+            <loc>{{ route('chapter', ['storySlug' => $story->slug, 'chapterSlug' => $chapter->slug]) }}</loc>
             <lastmod>{{ $chapter->updated_at->tz('UTC')->toAtomString() }}</lastmod>
             <changefreq>weekly</changefreq>
             <priority>0.8</priority>

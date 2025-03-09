@@ -83,7 +83,7 @@
                                                     @foreach ($categoryGroup as $category)
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="{{ route('categories.show', $category) }}">
+                                                                href="{{ route('categories.story.show', $category->slug) }}">
                                                                 {{ $category->name }}
                                                                 <span
                                                                     class="badge bg-secondary float-end">{{ $category->stories_count }}</span>
@@ -97,7 +97,7 @@
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="text-dark nav-link" href="#">
+                                    <a class="text-dark nav-link" href="{{ route('contact') }}">
                                         <i class="fa-solid fa-address-card fa-lg"></i> Liên hệ
                                     </a>
                                 </li>
@@ -107,11 +107,13 @@
                         <div>
                             <div class="search-container d-flex align-items-center">
                                 <div class="position-relative">
-                                    <input type="text" class="form-control search-input"
-                                        placeholder="Tìm kiếm truyện...">
-                                    <button class="btn search-btn">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                                    <form action="{{ route('searchHeader') }}" method="GET">
+                                        <input type="text" name="query" class="form-control search-input"
+                                            placeholder="Tìm kiếm truyện..." value="{{ request('query') }}">
+                                        <button type="submit" class="btn search-btn">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -201,13 +203,14 @@
                                     data-bs-parent="#categoryAccordion">
                                     <div class="accordion-body p-0 mt-2">
                                         <div class="row g-0">
-                                            @foreach($categories->chunk(ceil($categories->count() / 2)) as $categoryGroup)
+                                            @foreach ($categories->chunk(ceil($categories->count() / 2)) as $categoryGroup)
                                                 <div class="col-6">
-                                                    @foreach($categoryGroup as $category)
+                                                    @foreach ($categoryGroup as $category)
                                                         <a class="mobile-menu-item ps-3 py-2 d-block"
                                                             href="{{ route('categories.show', $category) }}">
                                                             {{ $category->name }}
-                                                            <span class="badge bg-secondary float-end">{{ $category->stories_count }}</span>
+                                                            <span
+                                                                class="badge bg-secondary float-end">{{ $category->stories_count }}</span>
                                                         </a>
                                                     @endforeach
                                                 </div>
@@ -290,5 +293,26 @@
 
             // Initial check
             handleScroll();
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Existing header transition code...
+
+            // Search form handling
+            const searchForm = document.querySelector('.search-container form');
+            const searchInput = searchForm.querySelector('input[name="query"]');
+
+            searchForm.addEventListener('submit', function(e) {
+                if (searchInput.value.trim() === '') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+
+            // Auto-focus search input when clicking on the search container
+            document.querySelector('.search-container').addEventListener('click', function() {
+                searchInput.focus();
+            });
         });
     </script>

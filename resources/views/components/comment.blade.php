@@ -32,7 +32,9 @@
     </div>
 </section>
 
+
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             let page = 1;
@@ -80,22 +82,25 @@
             });
 
             $('#load-more-comments').click(function() {
+                const btn = $(this);
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Đang tải...');
+
                 page++;
                 $.ajax({
-                    url: '{{ route('home') }}',
+                    url: '{{ route('comments.load', $story->id) }}',
                     data: {
-                        page: page,
-                        type: 'comments'
+                        page: page
                     },
                     success: function(res) {
                         $('#comments-list').append(res.html);
                         if (!res.hasMore) {
                             $('#load-more-comments').remove();
                         }
+                        btn.html('Xem thêm bình luận...');
                     },
                     error: function(xhr) {
-                        console.log(xhr);
-
+                        showToast('Có lỗi xảy ra khi tải bình luận', 'error');
+                        btn.html('Thử lại');
                     }
                 });
             });
@@ -103,17 +108,31 @@
             $(document).on('click', '.reply-btn', function(e) {
                 e.preventDefault();
                 const commentId = $(this).data('id');
+                // Remove any existing reply forms first
+                $('.reply-form').remove();
+                $('.reply-btn').show();
+
                 const replyForm = `
-            <div class="reply-form mt-2">
-                <div class="form-floating">
-                    <textarea class="form-control" placeholder="Nhập trả lời..." maxlength="700"></textarea>
-                    <label>Trả lời</label>
-                </div>
-                <button class="btn btn-sm btn-info mt-2 submit-reply" data-id="${commentId}">Gửi</button>
-            </div>
-        `;
+                    <div class="reply-form mt-2">
+                        <div class="form-floating">
+                            <textarea class="form-control" placeholder="Nhập trả lời..." maxlength="700"></textarea>
+                            <label>Trả lời</label>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-2">
+                            <button class="btn btn-sm btn-secondary cancel-reply">Hủy</button>
+                            <button class="btn btn-sm btn-primary submit-reply" data-id="${commentId}">Gửi</button>
+                        </div>
+                    </div>
+                `;
                 $(this).closest('.post-comments').append(replyForm);
                 $(this).hide();
+            });
+
+            $(document).on('click', '.cancel-reply', function() {
+                const replyForm = $(this).closest('.reply-form');
+                const replyBtn = replyForm.closest('.post-comments').find('.reply-btn');
+                replyForm.remove();
+                replyBtn.show();
             });
 
             $(document).on('click', '.submit-reply', function() {
@@ -140,12 +159,11 @@
                         if (res.status === 'success') {
                             let replyContainer = btn.closest('.post-comments').find(
                                 'ul.comments');
-                            let replyBtn = btn.closest('.post-comments').find('.reply-btn');
 
                             // Create replies container if it doesn't exist
                             if (replyContainer.length === 0) {
                                 btn.closest('.post-comments').append(
-                                    '<ul class="comments"></ul>');
+                                    '<ul class="comments mt-3"></ul>');
                                 replyContainer = btn.closest('.post-comments').find(
                                     'ul.comments');
                             }
@@ -153,11 +171,8 @@
                             replyContainer.append(res.html);
                             btn.closest('.reply-form').remove();
 
-                            // Re-enable reply button with delay to ensure DOM is updated
-                            setTimeout(() => {
-                                replyBtn.css('display', 'inline-block');
-                            }, 100);
-
+                            // Re-enable reply button
+                            btn.closest('.post-comments').find('.reply-btn').show();
                             showToast(res.message, 'success');
                         }
                     },
@@ -201,7 +216,6 @@
         }
 
         @media (max-width: 768px) {
-
             .blog-comment ul.comments ul:before {
                 left: -10px;
             }
@@ -265,9 +279,11 @@
         .blog-comment .post-comments {
             margin-bottom: 15px;
             position: relative;
+            width: 100%;
         }
 
         .blog-comment .post-comments .content-post-comments {
+            background: #fff;
             border: 1px solid #eee;
             border-radius: 15px;
             padding: 5px;
@@ -279,22 +295,6 @@
             padding-bottom: 8px;
             margin-bottom: 10px !important;
             border-bottom: 1px solid #eee;
-        }
-
-
-
-        .blog-comment-form {
-            padding-left: 15%;
-            padding-right: 15%;
-            padding-top: 40px;
-        }
-
-        .blog-comment h3,
-        .blog-comment-form h3 {
-            margin-bottom: 40px;
-            font-size: 26px;
-            line-height: 30px;
-            font-weight: 800;
         }
 
         .submit-comment {
@@ -313,6 +313,11 @@
             font-size: 12px;
         }
 
+        .reaction-btn.active {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
         .reply-form {
             margin: 10px 0;
         }
@@ -321,11 +326,6 @@
         @media (max-width: 768px) {
             .blog-comment .post-comments {
                 padding: 10px !important;
-            }
-
-            .blog-comment img.avatar {
-                width: 35px;
-                height: 35px;
             }
 
             .reaction-btn {
@@ -346,6 +346,20 @@
             .meta .pull-right {
                 margin-left: auto;
             }
+        }
+
+        /* Pinned comment styling */
+        .pinned-comment .content-post-comments {
+            border: 1px solid #ffc107 !important;
+            background-color: #fffdf5 !important;
+        }
+
+        .pinned-comment .pinned-badge {
+            color: #ffc107;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
         }
     </style>
 @endpush

@@ -1,5 +1,5 @@
 <div class="row g-3">
-    @foreach ($hotStories as $story)
+    @forelse ($hotStories as $story)
         <div class="col-6 col-md-3 col-lg-2 story-item">
             <div class="story-card">
                 <div class="story-thumbnail">
@@ -35,5 +35,13 @@
                 </div>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div class="col-12">
+            <div class="alert alert-info text-center py-4 mb-4">
+                <i class="fas fa-book-open fa-2x mb-3 text-muted"></i>
+                <h5 class="mb-1">Không tìm thấy truyện nào</h5>
+                <p class="text-muted mb-0">Hiện không có truyện nào trong danh mục này.</p>
+            </div>
+        </div>
+    @endforelse
 </div>

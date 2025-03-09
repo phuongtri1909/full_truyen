@@ -1,47 +1,11 @@
-@push('styles')
-    <style>
-        .role-badge {
-            font-weight: bold;
-            padding: 0 3px;
-        }
-
-        .admin-badge {
-            color: #dc3545;
-        }
-
-        .mod-badge {
-            color: #198754;
-        }
-
-        .vip-badge {
-            color: #0d6efd;
-        }
-
-        .clickable-name {
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .clickable-name:hover {
-            opacity: 0.8;
-        }
-    </style>
-@endpush
 @php
-    $level = 0;
-    $currentComment = $comment;
-    // Count levels by checking parent comments
-    if ($currentComment && $currentComment->reply_id) {
-        while ($currentComment->reply_id && $currentComment->parent) {
-            $level++;
-            $currentComment = $currentComment->parent;
-        }
-    }
+    $level = $comment->level ?? 0;
+    $isPinned = $comment->is_pinned ?? false;
 @endphp
 
-<li class="clearfix d-flex" id="comment-{{ $comment->id }} ">
+<li class="clearfix d-flex {{ $isPinned ? 'pinned-comment' : '' }}" id="comment-{{ $comment->id }}">
     <img src="{{ $comment->user && $comment->user->avatar ? asset($comment->user->avatar) : asset('assets/images/avatar_default.jpg') }}"
-        class=" {{ $comment->level > 0 ? 'avatar-reply' : 'avatar' }}"
+        class="{{ $level > 0 ? 'avatar-reply' : 'avatar' }}"
         alt="{{ $comment->user ? $comment->user->name : 'Người dùng không tồn tại' }}">
     <div class="post-comments p-2 p-md-3">
         <div class="content-post-comments">
@@ -51,8 +15,9 @@
                     @if ($comment->user)
                         @if ($comment->user->role === 'admin')
                             <span class="role-badge admin-badge">
-                                @if(auth()->check() && auth()->user()->role === 'admin')
-                                    <a href="{{ route('users.show', $comment->user->id) }}" target="_blank" class="text-decoration-none admin-badge">
+                                @if (auth()->check() && auth()->user()->role === 'admin')
+                                    <a href="{{ route('users.show', $comment->user->id) }}" target="_blank"
+                                        class="text-decoration-none admin-badge">
                                         [ADMIN] {{ $comment->user->name }}
                                     </a>
                                 @else
@@ -61,27 +26,19 @@
                             </span>
                         @elseif($comment->user->role === 'mod')
                             <span class="role-badge mod-badge">
-                                @if(auth()->check() && auth()->user()->role === 'admin')
-                                    <a href="{{ route('users.show', $comment->user->id) }}" target="_blank" class="text-decoration-none mod-badge">
+                                @if (auth()->check() && auth()->user()->role === 'admin')
+                                    <a href="{{ route('users.show', $comment->user->id) }}" target="_blank"
+                                        class="text-decoration-none mod-badge">
                                         [MOD] {{ $comment->user->name }}
                                     </a>
                                 @else
                                     [MOD] {{ $comment->user->name }}
                                 @endif
                             </span>
-                        @elseif($comment->user->role === 'vip')
-                            <span class="role-badge vip-badge">
-                                @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'mod'))
-                                    <a href="{{ route('users.show', $comment->user->id) }}" target="_blank" class="text-decoration-none vip-badge">
-                                        [VIP] {{ $comment->user->name }}
-                                    </a>
-                                @else
-                                    [VIP] {{ $comment->user->name }}
-                                @endif
-                            </span>
                         @else
-                            @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'mod'))
-                                <a href="{{ route('users.show', $comment->user->id) }}" target="_blank" class="text-decoration-none text-dark">
+                            @if (auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->role === 'mod'))
+                                <a href="{{ route('users.show', $comment->user->id) }}" target="_blank"
+                                    class="text-decoration-none text-dark">
                                     {{ $comment->user->name }}
                                 </a>
                             @else
@@ -93,7 +50,13 @@
                     @endif
                 </a>
 
-                @if ($comment->level < 2 && auth()->check())
+                @if ($isPinned)
+                    <span class="pinned-badge ms-2">
+                        <i class="fas fa-thumbtack"></i> Đã ghim
+                    </span>
+                @endif
+
+                @if ($level < 2 && auth()->check())
                     <span class="pull-right">
                         <small class="reply-btn text-decoration-underline" style="cursor: pointer;"
                             data-id="{{ $comment->id }}">
@@ -102,23 +65,24 @@
                     </span>
                 @endif
 
-                @if (
-                    (auth()->check() && auth()->user()->role === 'admin' && (!$comment->user || $comment->user->role !== 'admin')) ||
-                    (auth()->check() && auth()->user()->role === 'mod' && $comment->user && in_array($comment->user->role, ['user', 'vip']))
-                )
-                    <span class="delete-comment text-danger ms-2" style="cursor: pointer;" data-id="{{ $comment->id }}">
-                        <i class="fas fa-times"></i>
-                    </span>
-                @endif
+                @if (auth()->check())
+                    @if (auth()->user()->role === 'admin' ||
+                            (auth()->user()->role === 'mod' && $comment->user && in_array($comment->user->role, ['user', 'vip'])))
+                        <span class="delete-comment text-danger ms-2" style="cursor: pointer;"
+                            data-id="{{ $comment->id }}">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    @endif
 
-                @if ($comment->level == 0 && auth()->check() && auth()->user()->role === 'admin')
-                    <button class="btn btn-sm pin-comment ms-2" data-id="{{ $comment->id }}">
-                        @if($comment->is_pinned)
-                            <i class="fas fa-thumbtack text-warning" title="Bỏ ghim"></i>
-                        @else
-                            <i class="fas fa-thumbtack" title="Ghim"></i>
-                        @endif
-                    </button>
+                    @if ($level == 0 && auth()->user()->role === 'admin')
+                        <button class="btn btn-sm pin-comment ms-2" data-id="{{ $comment->id }}">
+                            @if ($isPinned)
+                                <i class="fas fa-thumbtack text-warning" title="Bỏ ghim"></i>
+                            @else
+                                <i class="fas fa-thumbtack" title="Ghim"></i>
+                            @endif
+                        </button>
+                    @endif
                 @endif
             </p>
 
@@ -126,17 +90,34 @@
 
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">{{ $comment->created_at->locale('vi')->diffForHumans() }}</span>
-                <button
-                    class="btn btn-sm btn-outline-primary reaction-btn {{ $comment->reactions->where('user_id', auth()->id())->where('type', 'like')->first()? 'active': '' }}"
+
+                @php
+                    $userLiked = auth()->check()
+                        ? $comment->reactions
+                            ->where('user_id', auth()->id())
+                            ->where('type', 'like')
+                            ->first()
+                        : null;
+                    $userDisliked = auth()->check()
+                        ? $comment->reactions
+                            ->where('user_id', auth()->id())
+                            ->where('type', 'dislike')
+                            ->first()
+                        : null;
+                    $likesCount = $comment->reactions->where('type', 'like')->count();
+                    $dislikesCount = $comment->reactions->where('type', 'dislike')->count();
+                @endphp
+
+                <button class="btn btn-sm btn-outline-primary reaction-btn {{ $userLiked ? 'active' : '' }}"
                     data-type="like" data-id="{{ $comment->id }}">
                     <i class="fas fa-thumbs-up"></i>
-                    <span class="likes-count">{{ $comment->likes()->count() }}</span>
+                    <span class="likes-count">{{ $likesCount }}</span>
                 </button>
-                <button
-                    class="btn btn-sm btn-outline-danger reaction-btn {{ $comment->reactions->where('user_id', auth()->id())->where('type', 'dislike')->first()? 'active': '' }}"
+
+                <button class="btn btn-sm btn-outline-danger reaction-btn {{ $userDisliked ? 'active' : '' }}"
                     data-type="dislike" data-id="{{ $comment->id }}">
                     <i class="fas fa-thumbs-down"></i>
-                    <span class="dislikes-count">{{ $comment->dislikes()->count() }}</span>
+                    <span class="dislikes-count">{{ $dislikesCount }}</span>
                 </button>
             </div>
         </div>
@@ -172,20 +153,51 @@
 </div>
 
 @once
+    @push('styles')
+        <style>
+            .role-badge {
+                font-weight: bold;
+                padding: 0 3px;
+            }
+
+            .admin-badge {
+                color: #dc3545;
+            }
+
+            .mod-badge {
+                color: #198754;
+            }
+
+            .vip-badge {
+                color: #0d6efd;
+            }
+
+            .clickable-name {
+                cursor: pointer;
+                text-decoration: underline;
+            }
+
+            .clickable-name:hover {
+                opacity: 0.8;
+            }
+        </style>
+    @endpush
     @push('scripts')
         {{-- Ghim comment --}}
         <script>
             $(document).on('click', '.pin-comment', function() {
                 const btn = $(this);
                 const commentId = btn.data('id');
-                
+
                 if (btn.prop('disabled')) return;
                 btn.prop('disabled', true);
-                
+
                 $.ajax({
                     url: `/comments/${commentId}/pin`,
                     type: 'POST',
-                    data: {_token: '{{ csrf_token() }}'},
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
                     success: function(res) {
                         if (res.status === 'success') {
                             // Update comments list with new HTML

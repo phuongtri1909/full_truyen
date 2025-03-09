@@ -24,4 +24,14 @@ class CommentReaction extends Model
     {
         return $this->reactions()->where('type', 'dislike');
     }
+
+    public function comment()
+    {
+        return $this->belongsTo(Comment::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

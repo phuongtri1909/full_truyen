@@ -5,10 +5,97 @@ namespace App\Http\Controllers;
 use App\Models\Story;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use App\Models\CommentReaction;
 
 class CommentController extends Controller
 {
 
+    public function react(Request $request, $commentId)
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Vui lòng đăng nhập để thực hiện',
+                'redirect' => route('login')
+            ], 401);
+        }
+
+        $comment = Comment::findOrFail($commentId);
+        $type = $request->type;
+        $userId = auth()->id();
+
+        // Validate reaction type
+        if (!in_array($type, ['like', 'dislike'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Loại phản ứng không hợp lệ'
+            ], 400);
+        }
+
+        // Check if user already reacted to this comment
+        $existingReaction = CommentReaction::where('comment_id', $commentId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($existingReaction) {
+            if ($existingReaction->type === $type) {
+                // If same reaction type, remove it (toggle off)
+                $existingReaction->delete();
+                $message = $type === 'like' ? 'Đã bỏ thích bình luận' : 'Đã bỏ không thích bình luận';
+            } else {
+                // If different reaction type, update it
+                $existingReaction->update(['type' => $type]);
+                $message = $type === 'like' ? 'Đã thích bình luận' : 'Đã không thích bình luận';
+            }
+        } else {
+            // Create new reaction
+            CommentReaction::create([
+                'comment_id' => $commentId,
+                'user_id' => $userId,
+                'type' => $type
+            ]);
+            $message = $type === 'like' ? 'Đã thích bình luận' : 'Đã không thích bình luận';
+        }
+
+        // Get updated counts
+        $likes = CommentReaction::where('comment_id', $commentId)->where('type', 'like')->count();
+        $dislikes = CommentReaction::where('comment_id', $commentId)->where('type', 'dislike')->count();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'likes' => $likes,
+            'dislikes' => $dislikes
+        ]);
+    }
+
+
+    public function loadComments(Request $request, $storyId)
+    {
+        $pinnedComments = Comment::with(['user', 'replies.user', 'reactions'])
+            ->where('story_id', $storyId)
+            ->whereNull('reply_id')
+            ->where('is_pinned', true)
+            ->latest('pinned_at')
+            ->get();
+
+        $regularComments = Comment::with(['user', 'replies.user', 'reactions'])
+            ->where('story_id', $storyId)
+            ->whereNull('reply_id')
+            ->where('is_pinned', false)
+            ->latest()
+            ->paginate(10);
+
+        if ($request->ajax()) {
+            $html = view('components.comments-list', compact('pinnedComments', 'regularComments'))->render();
+            return response()->json([
+                'html' => $html,
+                'hasMore' => $regularComments->hasMorePages()
+            ]);
+        }
+
+        return view('components.comment', compact('pinnedComments', 'regularComments', 'storyId'));
+    }
 
     public function togglePin($commentId)
     {
@@ -106,6 +193,14 @@ class CommentController extends Controller
             ], 401);
         }
 
+        $request->validate([
+            'comment' => 'required|max:700',
+            'story_id' => 'required|exists:stories,id',
+            'reply_id' => 'nullable|exists:comments,id'
+        ]);
+
+        $story = Story::findOrFail($request->story_id);
+
         $user = auth()->user();
         if ($user->ban_comment) {
             return response()->json([
@@ -114,15 +209,19 @@ class CommentController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'comment' => 'required|max:700',
-            'reply_id' => 'nullable|exists:comments,id'
-        ]);
-
         $parentComment = null;
         if ($request->reply_id) {
-            $parentComment = Comment::find($request->reply_id);
-            if ($parentComment && $parentComment->level >= 2) {
+            $parentComment = Comment::where('story_id', $request->story_id)
+                ->find($request->reply_id);
+
+            if (!$parentComment) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Không tìm thấy bình luận để trả lời'
+                ], 404);
+            }
+
+            if ($parentComment->level >= 2) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Không thể trả lời bình luận này'
@@ -132,10 +231,10 @@ class CommentController extends Controller
 
         $comment = Comment::create([
             'user_id' => auth()->id(),
+            'story_id' => $request->story_id,
             'comment' => $request->comment,
             'reply_id' => $request->reply_id,
             'level' => $request->reply_id ? ($parentComment->level + 1) : 0,
-            'story_id' => $request->story_id
         ]);
 
         $comment->load('user');
@@ -146,10 +245,13 @@ class CommentController extends Controller
             'html' => view('components.comments-item', compact('comment'))->render()
         ]);
     }
+
+   
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request,Story $story)
+    public function index(Request $request, Story $story)
     {
         $search = $request->search;
         $userId = $request->user;
