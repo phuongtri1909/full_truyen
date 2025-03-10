@@ -121,7 +121,7 @@ class StoryController extends Controller
         $request->validate([
             'title' => 'required|unique:stories|max:255',
             'description' => 'required',
-            'categories' => 'required|array',
+            'categories' => 'required|array|max:4',
             'categories.*' => 'exists:categories,id',
             'cover' => 'required|image|mimes:jpeg,png,jpg,gif',
             'status' => 'required|in:draft,published'
@@ -131,6 +131,8 @@ class StoryController extends Controller
             'title.max' => 'Tiêu đề không được quá 255 ký tự.',
             'description.required' => 'Mô tả không được để trống.',
             'categories.required' => 'Chuyên mục không được để trống.',
+            'categories.array' => 'Chuyên mục phải là một mảng.',
+            'categories.max' => 'Chuyên mục không được chọn quá 4.',
             'categories.*.exists' => 'Chuyên mục không hợp lệ.',
             'cover.required' => 'Ảnh bìa không được để trống.',
             'cover.image' => 'Ảnh bìa phải là ảnh.',
@@ -187,10 +189,23 @@ class StoryController extends Controller
         $request->validate([
             'title' => 'required|max:255|unique:stories,title,' . $story->id,
             'description' => 'required',
-            'categories' => 'required|array',
+            'categories' => 'required|array|max:4',
             'categories.*' => 'exists:categories,id',
             'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'status' => 'required|in:draft,published',
+        ], [
+            'title.required' => 'Tiêu đề không được để trống.',
+            'title.unique' => 'Tiêu đề đã tồn tại.',
+            'title.max' => 'Tiêu đề không được quá 255 ký tự.',
+            'description.required' => 'Mô tả không được để trống.',
+            'categories.required' => 'Chuyên mục không được để trống.',
+            'categories.max' => 'Bạn chỉ được chọn tối đa 4 thể loại.', // Added custom message
+            'categories.*.exists' => 'Chuyên mục không hợp lệ.',
+            'cover.image' => 'Ảnh bìa phải là ảnh.',
+            'cover.mimes' => 'Ảnh bìa phải có định dạng jpeg, png, jpg hoặc gif.',
+            'cover.max' => 'Ảnh bìa không được quá 2MB.',
+            'status.required' => 'Trạng thái không được để trống.',
+            'status.in' => 'Trạng thái không hợp lệ.'
         ]);
 
         DB::beginTransaction();
@@ -223,7 +238,7 @@ class StoryController extends Controller
             $story->categories()->sync($request->categories);
 
             DB::commit();
-            if(isset($oldImages)) {
+            if (isset($oldImages)) {
                 Storage::disk('public')->delete($oldImages);
             }
             return redirect()->route('stories.index')

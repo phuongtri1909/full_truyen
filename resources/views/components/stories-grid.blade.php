@@ -28,7 +28,7 @@
                     </h3>
                     <div class="story-stats-container mt-2 mb-0">
                         <div class="d-flex justify-content-between">
-                            <span><i class="fas fa-eye eye"></i> {{ number_format($story->total_views) }}</span>
+                            {{-- <span><i class="fas fa-eye eye"></i> {{ number_format($story->total_views) }}</span> --}}
                             <span><i class="fas fa-star star"></i> {{ number_format($story->average_rating, 1) }}</span>
                         </div>
                     </div>

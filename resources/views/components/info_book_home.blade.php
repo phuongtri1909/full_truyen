@@ -37,11 +37,11 @@
                             <span class="counter" data-target="{{ $stats['total_chapters'] }}">0</span>
                             <span>Chương</span>
                         </div>
-                        <div class="stat-item text-dark">
+                        {{-- <div class="stat-item text-dark">
                             <i class="fas fa-eye eye text-primary"></i>
                             <span class="counter" data-target="{{ $stats['total_views'] }}">0</span>
                             <span>Lượt Xem</span>
-                        </div>
+                        </div> --}}
                         <div class="stat-item text-dark">
                             <i class="fas fa-star star text-warning"></i>
                             <span class="counter" data-target="{{ $stats['ratings']['count'] }}">0</span>
