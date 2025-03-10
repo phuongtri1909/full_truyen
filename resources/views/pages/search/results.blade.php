@@ -17,7 +17,7 @@
 @endsection
 
 @section('content')
-    <div class="mt-5 ">
+    <div class="mt-5 container-xl">
         <div class="row">
             <!-- Main content area (8 columns) -->
             <div class="col-12 col-md-7 col-lg-8">
