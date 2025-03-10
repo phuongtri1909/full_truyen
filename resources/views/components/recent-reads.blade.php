@@ -16,8 +16,8 @@
                             </a>
                         </div>
                         <div class="story-info">
-                            <h4 class="recent-story-title">
-                                <a href="{{ route('show.page.story', $reading->story->slug) }}">
+                            <h4 class="recent-story-title" title="{{ $reading->story->title }}">
+                                <a href="{{ route('show.page.story', $reading->story->slug) }}" class="text-truncate d-inline-block w-100">
                                     {{ $reading->story->title }}
                                 </a>
                             </h4>
@@ -51,7 +51,7 @@
             /* Recent Reads Widget Styles */
             .recent-story-thumb {
                 width: 50px;
-                height: 100%;
+                height: 80px;
                 object-fit: cover;
                 border-radius: 4px;
             }
@@ -60,12 +60,26 @@
                 font-size: 0.95rem;
                 margin: 0;
                 line-height: 1.4;
+                width: 100%; /* Ensure the title container has full width */
             }
 
             .recent-story-title a {
                 color: #333;
                 text-decoration: none;
                 transition: color 0.3s;
+                max-width: calc(100% - 10px); /* Subtract some padding to prevent overflow */
+            }
+
+            .text-truncate {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .story-info {
+                flex-grow: 1;
+                min-width: 0; /* This is crucial for flexbox children to respect width constraints */
+                overflow: hidden; /* Ensure content doesn't overflow */
             }
 
             .recent-story-title a:hover {
@@ -89,10 +103,6 @@
             .story-thumb-wrapper {
                 margin-right: 12px;
                 flex-shrink: 0;
-            }
-
-            .story-info {
-                flex-grow: 1;
             }
 
             .reading-progress {

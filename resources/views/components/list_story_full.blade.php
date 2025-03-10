@@ -34,8 +34,8 @@
         @empty
             <div class="col-12">
                 <div class="empty-finished py-5 text-center">
-                    <div class="empty-icon mb-3">
-                        <i class="fas fa-book-reader text-muted" style="font-size: 3.5rem; opacity: 0.6;"></i>
+                    <div class=" mb-3">
+                        <i class="empty-icon fas fa-book-reader text-muted" style="font-size: 3.5rem; opacity: 0.6;"></i>
                     </div>
                     <h4 class="empty-title mb-3">Chưa có truyện hoàn thành</h4>
                     <p class="text-muted">Hiện tại chưa có truyện nào đã hoàn thành trong hệ thống.</p>

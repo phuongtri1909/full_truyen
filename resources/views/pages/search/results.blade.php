@@ -17,10 +17,10 @@
 @endsection
 
 @section('content')
-    <div class="container py-4 mt-5 ">
+    <div class="mt-5 ">
         <div class="row">
             <!-- Main content area (8 columns) -->
-            <div class="col-lg-8">
+            <div class="col-12 col-md-7 col-lg-8">
                 <div class="bg-white p-3 rounded-4 shadow-sm mb-4">
                     <h2 class="h4 mb-3 fw-bold">
                         @if (isset($isSearch) && $isSearch)
@@ -49,12 +49,12 @@
                                     </a>
                                 </div>
                                 <div class="col-9 col-md-10">
-                                    <h3 class="h5 mb-1">
+                                    <h6 class="h6 mb-1">
                                         <a href="{{ route('show.page.story', $story->slug) }}"
                                             class="text-dark text-decoration-none">
                                             {{ $story->title }}
                                         </a>
-                                    </h3>
+                                    </h6>
                                     <div class="categories mb-2">
                                         @foreach ($story->categories as $category)
                                             <a href="{{ route('categories.story.show', $category->slug) }}"
@@ -75,7 +75,7 @@
                                             <i class="fas fa-clock me-1 text-warning"></i> {{ $story->updated_at->diffForHumans() }}
                                         </div>
                                     </div>
-                                    <div class="story-description mt-2 small text-muted">
+                                    <div class="story-description mt-2 small text-muted d-none d-md-block">
                                         {{ Str::limit($story->description, 150) }}
                                     </div>
                                 </div>
@@ -90,7 +90,7 @@
             </div>
 
             <!-- Sidebar (4 columns) - Now using the component -->
-            <div class="col-lg-4">
+            <div class="col-12 col-md-5 col-lg-4">
 
                 <div class="mb-4">
                     @include('components.recent-reads')

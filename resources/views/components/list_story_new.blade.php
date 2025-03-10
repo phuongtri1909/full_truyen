@@ -1,12 +1,12 @@
 <section class="new-stories-section mt-4">
     <div class="row">
         <!-- Main Content - New Stories -->
-        <div class="col-12 col-sm-7 col-md-8">
+        <div class="col-12 col-md-7 col-lg-8">
             <div class="content-wrapper">
                 <div class="section-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h1 class="section-title">
-                            <i class="fas fa-clock text-primary me-2 fa-xl cl-00b894"></i>Truyện mới cập nhật
+                            <i class="fas fa-clock text-primary me-2 fa-xl cl-00b894"></i>Truyện Mới
                         </h1>
                         <div class="category-filter">
                             <select class="form-select custom-select" id="newStoryCategoryFilter">
@@ -27,7 +27,7 @@
         </div>
 
         <!-- Sidebar -->
-        <div class="col-12 col-sm-5 col-md-4">
+        <div class="col-12 col-md-5 col-lg-4 mt-3 mt-sm-0">
             <!-- Recently Read Stories -->
             @include('components.recent-reads')
 

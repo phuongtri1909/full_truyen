@@ -5,7 +5,7 @@
                 <img src="{{ Storage::url($story->cover) }}" class="story-thumb"
                     alt="{{ $story->title }}">
                 <div class="ms-3">
-                    <h6 class="story-title">
+                    <h6 class="story-title text-start mb-1">
                         <a href="{{ route('show.page.story', $story->slug) }}">{{ $story->title }}</a>
                     </h6>
                     <div>
