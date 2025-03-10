@@ -54,15 +54,15 @@ class UserController extends Controller
                     'message' => 'Không thể xóa ảnh đại diện của Admin/Mod'
                 ], 403);
             }
-        
+
             // Delete avatar using Storage facade instead of File facade
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
             }
-            
+
             $user->avatar = null;
             $user->save();
-        
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Đã xóa ảnh đại diện'
@@ -390,19 +390,20 @@ class UserController extends Controller
         $fileName = "{$timestamp}_{$randomString}";
 
         // Create directories if they don't exist
-        Storage::disk('public')->makeDirectory("avatars/{$yearMonth}");
+        Storage::disk('public')->makeDirectory("avatars/{$yearMonth}/original");
+        Storage::disk('public')->makeDirectory("avatars/{$yearMonth}/thumbnail");
 
-        // Process avatar image (200x200)
-        $avatarImage = Image::make($imageFile);
-        $avatarImage->fit(200, 200, function ($constraint) {
-            $constraint->aspectRatio();
-        });
-        $avatarImage->encode('webp', 80);
+        // Process original image
+        $originalImage = Image::make($imageFile);
+        $originalImage->encode('webp', 90);
+        Storage::disk('public')->put(
+            "avatars/{$yearMonth}/original/{$fileName}.webp",
+            $originalImage->stream()
+        );
 
-        $path = "avatars/{$yearMonth}/{$fileName}.webp";
-        Storage::disk('public')->put($path, $avatarImage->stream());
-
-        return $path;
+        return [
+            'original' => "avatars/{$yearMonth}/original/{$fileName}.webp",
+        ];
     }
 
     public function updateAvatar(Request $request)
@@ -421,34 +422,41 @@ class UserController extends Controller
             DB::beginTransaction();
 
             try {
-                // Store old avatar path for deletion
+                // Store old avatar paths for deletion
                 $oldAvatar = $user->avatar;
+                $oldAvatarThumbnail = $user->avatar_thumbnail;
 
                 // Process and save new avatar
-                $avatarPath = $this->processAndSaveAvatar($request->file('avatar'));
+                $avatarPaths = $this->processAndSaveAvatar($request->file('avatar'));
 
                 // Update user avatar path
-                $user->avatar = $avatarPath;
+                $user->avatar = $avatarPaths['original'];
                 $user->save();
 
                 DB::commit();
 
-                // Delete old avatar after successful update
+                // Delete old avatars after successful update
                 if ($oldAvatar) {
                     Storage::disk('public')->delete($oldAvatar);
+                }
+                if ($oldAvatarThumbnail) {
+                    Storage::disk('public')->delete($oldAvatarThumbnail);
                 }
 
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Cập nhật avatar thành công',
-                    'avatar' => Storage::url($avatarPath)
+                    'avatar' => $avatarPaths['original'],
+                    'avatar_url' => Storage::url($avatarPaths['original']),
                 ], 200);
             } catch (\Exception $e) {
                 DB::rollBack();
 
                 // Delete new avatar if it was uploaded
-                if (isset($avatarPath)) {
-                    Storage::disk('public')->delete($avatarPath);
+                if (isset($avatarPaths)) {
+                    Storage::disk('public')->delete([
+                        $avatarPaths['original'],
+                    ]);
                 }
 
                 \Log::error('Avatar update error:', ['error' => $e->getMessage()]);

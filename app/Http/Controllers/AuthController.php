@@ -11,7 +11,9 @@ use App\Mail\OTPForgotPWMail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Intervention\Image\Facades\Image;
 use App\Services\ReadingHistoryService;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -21,6 +23,31 @@ class AuthController extends Controller
     public function __construct(ReadingHistoryService $readingService)
     {
         $this->readingService = $readingService;
+    }
+
+    private function processAndSaveAvatar($imageFile)
+    {
+        $now = Carbon::now();
+        $yearMonth = $now->format('Y/m');
+        $timestamp = $now->format('YmdHis');
+        $randomString = Str::random(8);
+        $fileName = "{$timestamp}_{$randomString}";
+
+        // Create directories if they don't exist
+        Storage::disk('public')->makeDirectory("avatars/{$yearMonth}/original");
+        Storage::disk('public')->makeDirectory("avatars/{$yearMonth}/thumbnail");
+
+        // Process original image
+        $originalImage = Image::make($imageFile);
+        $originalImage->encode('webp', 90);
+        Storage::disk('public')->put(
+            "avatars/{$yearMonth}/original/{$fileName}.webp",
+            $originalImage->stream()
+        );
+
+        return [
+            'original' => "avatars/{$yearMonth}/original/{$fileName}.webp",
+        ];
     }
 
     public function register(Request $request)
@@ -75,10 +102,13 @@ class AuthController extends Controller
 
                 // Handle avatar upload if provided
                 if ($request->hasFile('avatar')) {
-                    $avatar = $request->file('avatar');
-                    $imageName = $user->id . time() . '.' . $avatar->extension();
-                    $avatar->move(public_path('uploads/images/avatar/'), $imageName);
-                    $user->avatar = 'uploads/images/avatar/' . $imageName;
+                    try {
+                        $avatarPaths = $this->processAndSaveAvatar($request->file('avatar'));
+                        $user->avatar = $avatarPaths['original'];
+                    } catch (\Exception $e) {
+                        \Log::error('Error processing avatar:', ['error' => $e->getMessage()]);
+                        // Continue without avatar if there's an error
+                    }
                 }
 
                 $user->save();
@@ -200,7 +230,7 @@ class AuthController extends Controller
                 return redirect()->route('admin.dashboard');
             }
 
-            
+
             return redirect()->route('home');
         } catch (Exception $e) {
             return redirect()->back()->withInput()->with('error', 'Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại sau.');

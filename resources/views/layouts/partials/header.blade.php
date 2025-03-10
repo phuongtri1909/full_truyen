@@ -126,7 +126,7 @@
                                     <a href="#"
                                         class="d-none d-lg-block d-flex align-items-center text-decoration-none dropdown-toggle text-dark"
                                         data-bs-toggle="dropdown">
-                                        <img src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
+                                        <img src="{{ auth()->user()->avatar ? Storage::url(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
                                             class="rounded-circle" width="40" height="40" alt="avatar"
                                             style="object-fit: cover;">
 
@@ -207,7 +207,7 @@
                                                 <div class="col-6">
                                                     @foreach ($categoryGroup as $category)
                                                         <a class="mobile-menu-item ps-3 py-2 d-block"
-                                                            href="{{ route('categories.story.show', $category->slug)}}">
+                                                            href="{{ route('categories.story.show', $category->slug) }}">
                                                             {{ $category->name }}
                                                         </a>
                                                     @endforeach
@@ -234,7 +234,7 @@
                                     <h2 class="accordion-header" id="userHeading">
                                         <button class="accordion-button collapsed mobile-menu-item p-0" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#userCollapse">
-                                            <img src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
+                                            <img src="{{ auth()->user()->avatar ? Storage::url(auth()->user()->avatar) : asset('assets/images/avatar_default.jpg') }}"
                                                 class="rounded-circle me-2" width="40" height="40" alt="avatar"
                                                 style="object-fit: cover;">
                                             <span>{{ auth()->user()->name }}</span>

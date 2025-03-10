@@ -17,14 +17,14 @@
 
 @section('content')
     @include('components.toast')
-    
+
     <div class="custom-container container-fluid mt-80 mb-5">
         <section class="">
             <div class="p-3 bg-white box-shadow">
                 <div class="d-flex">
                     <div class="rounded-circle border border-5 avatar border-secondary" id="avatar">
                         @if (!empty($user->avatar))
-                            <img id="avatarImage" class="rounded-circle" src="{{ asset($user->avatar) }}" alt="Avatar"
+                            <img id="avatarImage" class="rounded-circle" src="{{ Storage::url($user->avatar) }}" alt="Avatar"
                                 style="width: 100%; height: 100%; object-fit: cover;">
                         @else
                             <i class="fa-solid fa-user" id="defaultIcon"></i>
@@ -38,7 +38,7 @@
                 </div>
             </div>
         </section>
-    
+
         <section class="mt-2 ">
             <div class="bg-white box-shadow ">
                 <div class="p-3 d-flex justify-content-between border-bottom">
@@ -54,7 +54,7 @@
                         <i class="fa-solid fa-chevron-right ms-2"></i>
                     </div>
                 </a>
-               
+
                 <a href="#" class="underline-none text-dark p-3 d-flex justify-content-between border-bottom"
                     data-bs-toggle="modal" data-bs-target="#otpPWModal">
                     <span class="fw-semibold">Mật khẩu</span>
@@ -63,15 +63,16 @@
                         <i class="fa-solid fa-chevron-right ms-2"></i>
                     </div>
                 </a>
-                
-    
+
+
                 <!-- Modal -->
                 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="editModalLabel">Chỉnh sửa thông tin</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form id="editForm" action="{{ route('update.name.or.phone') }}" method="post">
@@ -80,26 +81,28 @@
                                         <!-- Nội dung sẽ được cập nhật dựa trên loại dữ liệu được chọn -->
                                     </div>
                                     <div class="text-end">
-    
+
                                         <button type="button" class="btn btn-outline-secondary"
                                             data-bs-dismiss="modal">Đóng</button>
-                                        <button type="submit" class="btn btn-outline-success click-scroll" id="saveChanges">Lưu
+                                        <button type="submit" class="btn btn-outline-success click-scroll"
+                                            id="saveChanges">Lưu
                                             thay
                                             đổi</button>
                                     </div>
-    
+
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
-    
+
                 <div class="modal fade" id="otpPWModal" tabindex="-1" aria-labelledby="otpPWModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="otpPWModalLabel">Xác thực OTP để đổi mật khẩu</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form id="otpPWForm">
@@ -110,7 +113,7 @@
                                         </div>
                                     </div>
                                     <div class="text-end box-button-update">
-    
+
                                         <button type="button" class="btn btn-outline-secondary"
                                             data-bs-dismiss="modal">Đóng</button>
                                         <button type="submit" class="btn btn-outline-success" id="btn-send-otpPW">Tiếp
@@ -121,17 +124,17 @@
                         </div>
                     </div>
                 </div>
-    
-    
+
+
             </div>
         </section>
-    
+
         <section class="mt-2 ">
             <div class="bg-white box-shadow ">
                 <div class="p-3 border-bottom d-flex align-items-center">
                     <div class="rounded-circle bg-info icon-menu d-flex align-items-center justify-content-center"><i
                             class="fa-solid fa-arrow-right-from-bracket"></i></div>
-    
+
                     <a href="{{ route('logout') }}" class="fw-semibold ms-3 underline-none text-dark">Đăng xuất</a>
                 </div>
             </div>
@@ -284,8 +287,9 @@
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                 },
                                 success: function(response) {
-                                    if (response.status ==='success') {
-                                        showToast(response.message,'success');
+                                    if (response.status === 'success') {
+                                        showToast(response.message,
+                                            'success');
 
                                         formOTPContent.empty();
                                         formOTPContent.append(`
@@ -308,73 +312,144 @@
                                                     </div>
                                                 `);
 
-                                        $('#btn-send-otpPW').text('Lưu thay đổi');
+                                        $('#btn-send-otpPW').text(
+                                            'Lưu thay đổi');
 
-                                        $('#otpPWForm').off('submit').on('submit', function(e) {
-                                            e.preventDefault();
-                                            var formData = new FormData(this);
-                                            formData.append('otp', otp);
-                                            
-                                            const passwordInput = $('#password');
+                                        $('#otpPWForm').off('submit').on(
+                                            'submit',
+                                            function(e) {
+                                                e.preventDefault();
+                                                var formData =
+                                                    new FormData(this);
+                                                formData.append('otp',
+                                                    otp);
 
-                                            const oldInvalidFeedback = passwordInput.parent().find('.invalid-feedback');
-                                                passwordInput.removeClass('is-invalid');
-                                                    if (oldInvalidFeedback.length) {
-                                                    oldInvalidFeedback.remove();
+                                                const passwordInput = $(
+                                                    '#password');
+
+                                                const
+                                                    oldInvalidFeedback =
+                                                    passwordInput
+                                                    .parent().find(
+                                                        '.invalid-feedback'
+                                                        );
+                                                passwordInput
+                                                    .removeClass(
+                                                        'is-invalid');
+                                                if (oldInvalidFeedback
+                                                    .length) {
+                                                    oldInvalidFeedback
+                                                        .remove();
                                                 }
 
-                                            $.ajax({
-                                                url: "{{ route('update.password') }}",
-                                                type: 'POST',
-                                                data: formData,
-                                                processData: false,
-                                                contentType: false,
-                                                headers: {
-                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                                },
-                                                success: function(response) {
-                                                    if (response.status === 'success') {
-                                                        showToast(response.message, 'success');
-                                                        formOTPContent.empty();
-                                                        $('#otpPWModal').modal('hide');
-                                                    } else {
-                                                        showToast(response.message, 'error');
-                                                    }
-                                                },
-                                                error: function(xhr, status, error) {
-                                                    const response = xhr.responseJSON;
-                                                    if (response && response.status === 'error') {
-                                                        if (response.message.password) {
-                                                            response.message.password.forEach(error => {
-                                                                const invalidFeedback = $('<div class="invalid-feedback"></div>').text(error);
-                                                                passwordInput.addClass('is-invalid').parent().append(invalidFeedback);
-                                                            });
+                                                $.ajax({
+                                                    url: "{{ route('update.password') }}",
+                                                    type: 'POST',
+                                                    data: formData,
+                                                    processData: false,
+                                                    contentType: false,
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                    },
+                                                    success: function(
+                                                        response
+                                                        ) {
+                                                        if (response
+                                                            .status ===
+                                                            'success'
+                                                            ) {
+                                                            showToast
+                                                                (response
+                                                                    .message,
+                                                                    'success'
+                                                                    );
+                                                            formOTPContent
+                                                                .empty();
+                                                            $('#otpPWModal')
+                                                                .modal(
+                                                                    'hide'
+                                                                    );
+                                                        } else {
+                                                            showToast
+                                                                (response
+                                                                    .message,
+                                                                    'error'
+                                                                    );
                                                         }
-                                                    } else {
-                                                        showToast('Đã xảy ra lỗi, vui lòng thử lại.', 'error');
+                                                    },
+                                                    error: function(
+                                                        xhr,
+                                                        status,
+                                                        error
+                                                        ) {
+                                                        const
+                                                            response =
+                                                            xhr
+                                                            .responseJSON;
+                                                        if (response &&
+                                                            response
+                                                            .status ===
+                                                            'error'
+                                                            ) {
+                                                            if (response
+                                                                .message
+                                                                .password
+                                                                ) {
+                                                                response
+                                                                    .message
+                                                                    .password
+                                                                    .forEach(
+                                                                        error => {
+                                                                            const
+                                                                                invalidFeedback =
+                                                                                $(
+                                                                                    '<div class="invalid-feedback"></div>')
+                                                                                .text(
+                                                                                    error
+                                                                                    );
+                                                                            passwordInput
+                                                                                .addClass(
+                                                                                    'is-invalid'
+                                                                                    )
+                                                                                .parent()
+                                                                                .append(
+                                                                                    invalidFeedback
+                                                                                    );
+                                                                        }
+                                                                        );
+                                                            }
+                                                        } else {
+                                                            showToast
+                                                                ('Đã xảy ra lỗi, vui lòng thử lại.',
+                                                                    'error'
+                                                                    );
+                                                        }
                                                     }
-                                                }
+                                                });
                                             });
-                                        });
 
 
                                     } else {
-                                        showToast(response.message,'error');
+                                        showToast(response.message,
+                                        'error');
                                     }
                                 },
-                                error: function(xhr, status,error) {
+                                error: function(xhr, status, error) {
                                     const input_otp = $('#input-otp-pw');
                                     input_otp.find('.invalid-otp').remove();
                                     const response = xhr.responseJSON;
 
-                                    if (response && response.status ==='error') {
+                                    if (response && response.status ===
+                                        'error') {
                                         if (response.message.otp) {
                                             input_otp.append(
-                                                    `<div class="invalid-otp text-danger fs-7">${response.message.otp[0]}</div>`
-                                                );
+                                                `<div class="invalid-otp text-danger fs-7">${response.message.otp[0]}</div>`
+                                            );
                                         }
                                     } else {
-                                        showToast('Thao tác sai, hãy thử lại','error');
+                                        showToast(
+                                            'Thao tác sai, hãy thử lại',
+                                            'error');
                                     }
                                 }
                             });
