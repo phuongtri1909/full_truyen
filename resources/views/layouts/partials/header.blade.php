@@ -207,10 +207,8 @@
                                                 <div class="col-6">
                                                     @foreach ($categoryGroup as $category)
                                                         <a class="mobile-menu-item ps-3 py-2 d-block"
-                                                            href="{{ route('categories.show', $category) }}">
+                                                            href="{{ route('categories.story.show', $category->slug)}}">
                                                             {{ $category->name }}
-                                                            <span
-                                                                class="badge bg-secondary float-end">{{ $category->stories_count }}</span>
                                                         </a>
                                                     @endforeach
                                                 </div>
@@ -223,7 +221,7 @@
 
                         <hr class="divider my-3">
 
-                        <a href="" class="mobile-menu-item ">
+                        <a href="{{ route('contact') }}" class="mobile-menu-item ">
                             <i class="fa-solid fa-address-card fa-lg me-2"></i> Liên hệ
                         </a>
 
