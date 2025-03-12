@@ -52,7 +52,7 @@
                     <div>
                         <p class="text-muted
                             mt-4 mb-0 text-justify">
-                            {{ $story->description }}</p>
+                            {!! nl2br(e($story->description)) !!}
                     </div>
 
                 </div>
