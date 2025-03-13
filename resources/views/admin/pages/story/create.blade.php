@@ -149,4 +149,17 @@
             });
         });
     </script>
+
+    <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+    <script>
+        CKEDITOR.replace('description', {
+            on: {
+                change: function(evt) {
+                    this.updateElement();
+                }
+            },
+            height: 200,
+            removePlugins: 'uploadimage,image2,uploadfile,filebrowser',
+        });
+    </script>
 @endpush

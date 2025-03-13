@@ -6,13 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>@yield('title', 'Trang chủ')</title>
-    <meta name="description" content="@yield('description', '')">
-    <meta name="keywords" content="@yield('keywords', '')">
+    <title>@yield('title', 'Trang chủ - Web đọc truyện online miễn phí | ' . config('app.name'))</title>
+    <meta name="description" content="@yield('description', 'Phùng Bảo Ngọc
+                        Nơi đây là thế giới của những câu chuyện ngôn tình mang chiều sâu có H văn. Những câu chuyện về những cặp đôi lạc lối trong chính trái tim mình, loay hoay giữa yêu thương và dằn vặt, để rồi sau tất cả, họ nhận ra tình yêu thật sự luôn tồn tại trong chính họ. Nếu bạn cũng thích những mối quan hệ loay hoay trong bản ngã để rồi thức tỉnh rằng tình yêu vẫn luôn ở sâu trong tâm khảm linh hồn- chào mừng bạn đã đến đây.')">
+    <meta name="keywords" content="@yield('keywords', 'hanlamngoc, hanlamngoc.com,  đọc truyện online, truyện miễn phí, truyện hot, truyện mới cập nhật, truyện full, truyện hoàn thành, đọc truyện chữ, web đọc truyện, novel, light novel, kho truyện online, truyện hay, truyện tiên hiệp, truyện kiếm hiệp, ngôn tình, đam mỹ, truyện teen, truyện xuyên không')">
     <meta name="robots" content="index, follow">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="@yield('title', 'Trang chủ')">
-    <meta property="og:description" content="@yield('decription', '')">
+    <meta property="og:title" content="@yield('title', 'Trang chủ - Web đọc truyện online miễn phí | ' . config('app.name'))')">
+    <meta property="og:description" content="@yield('description', 'Phùng Bảo Ngọc
+                        Nơi đây là thế giới của những câu chuyện ngôn tình mang chiều sâu có H văn. Những câu chuyện về những cặp đôi lạc lối trong chính trái tim mình, loay hoay giữa yêu thương và dằn vặt, để rồi sau tất cả, họ nhận ra tình yêu thật sự luôn tồn tại trong chính họ. Nếu bạn cũng thích những mối quan hệ loay hoay trong bản ngã để rồi thức tỉnh rằng tình yêu vẫn luôn ở sâu trong tâm khảm linh hồn- chào mừng bạn đã đến đây.')">
     <meta property="og:url" content="{{ url()->full() }}">
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta property="og:locale" content="vi_VN">
@@ -20,12 +22,13 @@
     <meta property="og:image:secure_url" content="{{ asset('assets/images/logo/logo_site.webp') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="@yield('title', 'Trang chủ')">
+    <meta property="og:image:alt" content="@yield('title', 'Trang chủ - Web đọc truyện online miễn phí | ' . config('app.name'))')">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', 'Trang chủ')">
-    <meta name="twitter:description" content="@yield('decription', '')">
+    <meta name="twitter:title" content="@yield('title', 'Trang chủ - Web đọc truyện online miễn phí | ' . config('app.name'))')">
+    <meta name="twitter:description" content="@yield('description', 'Phùng Bảo Ngọc
+                        Nơi đây là thế giới của những câu chuyện ngôn tình mang chiều sâu có H văn. Những câu chuyện về những cặp đôi lạc lối trong chính trái tim mình, loay hoay giữa yêu thương và dằn vặt, để rồi sau tất cả, họ nhận ra tình yêu thật sự luôn tồn tại trong chính họ. Nếu bạn cũng thích những mối quan hệ loay hoay trong bản ngã để rồi thức tỉnh rằng tình yêu vẫn luôn ở sâu trong tâm khảm linh hồn- chào mừng bạn đã đến đây.')">
     <meta name="twitter:image" content="{{ asset('assets/images/logo/logo_site.webp') }}">
-    <meta name="twitter:image:alt" content="@yield('title', 'Trang chủ')">
+    <meta name="twitter:image:alt" content="@yield('title', 'Trang chủ - Web đọc truyện online miễn phí | ' . config('app.name'))">
     <link rel="icon" href="{{ asset('assets/images/logo/favicon.ico') }}" type="image/png/x-icon">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.ico') }}" type="image/x-icon">

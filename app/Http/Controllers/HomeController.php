@@ -263,7 +263,7 @@ class HomeController extends Controller
         // Prepare chapters pagination and ranges
         $chapters = $story->chapters()
             ->published()
-            ->orderBy('number', 'desc')
+            ->orderBy('number', 'asc')
             ->paginate(50);
 
         // Get comments

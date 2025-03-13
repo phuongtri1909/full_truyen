@@ -1,7 +1,7 @@
 <!-- filepath: /d:/full_truyen/resources/views/pages/chapter.blade.php -->
 @extends('layouts.app')
 
-@section('title', "Chương {$chapter->number}: {$chapter->title}")
+@section('title', " Truyện {$story->title} | Chương {$chapter->number}: {$chapter->title} | " . config('app.name'))
 @section('description', Str::limit(strip_tags($chapter->content), 160))
 @section('keyword', "chương {$chapter->number}, {$chapter->title}")
 
@@ -124,7 +124,7 @@
                     <!-- Chapter Content -->
                     <div id="chapter-content"
                         class="chapter-content mb-4 animate__animated animate__fadeIn animate__delay-1s">
-                        {!! nl2br(e($chapter->content)) !!}
+                        {!! $chapter->content !!}
                     </div>
 
                     <!-- Chapter Navigation Bottom -->

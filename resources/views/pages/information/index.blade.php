@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Thông tin cá nhân')
-@section('description', 'Thông tin cá nhân con đường bá chủ')
-@section('keyword', 'Thông tin cá nhân, thông tin tài khoản, cdbc,con đường bá chủ')
+@section('description', 'Thông tin cá nhân của bạn trên hanlamngoc.com')
+@section('keyword', 'Thông tin cá nhân, thông tin tài khoản, hanlamngoc, hanlamngoc.com')
 @push('styles')
     <style>
         .avatar {

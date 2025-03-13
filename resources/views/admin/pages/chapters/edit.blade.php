@@ -74,7 +74,8 @@
 
                             <div class="col-md-12 text-center">
                                 <button type="submit" class="btn bg-gradient-primary">Cập nhật</button>
-                                <a href="{{ route('stories.chapters.index', $story) }}" class="btn btn-secondary">Trở về</a>
+                                <a href="{{ route('stories.chapters.index', $story) }}" class="btn btn-secondary">Trở
+                                    về</a>
                             </div>
                         </div>
                     </form>
@@ -102,7 +103,7 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 0.25%29'/%3e%3c/svg%3e");
         }
 
-        .form-switch .form-check-input:after{
+        .form-switch .form-check-input:after {
             top: 3px !important;
         }
     </style>
@@ -141,6 +142,19 @@
                     updateTitle();
                 }
             });
+        });
+    </script>
+
+    <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+    <script>
+        CKEDITOR.replace('content', {
+            on: {
+                change: function(evt) {
+                    this.updateElement();
+                }
+            },
+            height: 200,
+            removePlugins: 'uploadimage,image2,uploadfile,filebrowser',
         });
     </script>
 @endpush

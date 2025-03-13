@@ -1,7 +1,21 @@
 @extends('layouts.app')
-@section('title', 'Truyện - ' . $story->name)
-@section('description', '')
-@section('keyword', '')
+@extends('layouts.app')
+
+@section('title', $story->title . ' - Đọc truyện online | ' . config('app.name'))
+
+@section('description', Str::limit(strip_tags($story->description), 160))
+
+@section('keyword', implode(', ', [
+    $story->title, 
+    'đọc truyện ' . $story->title, 
+    'truyện online', 
+    $story->categories->pluck('name')->implode(', '),
+    $story->user->name ?? 'tác giả',
+    'đọc truyện miễn phí',
+    $story->completed ? 'truyện hoàn thành' : 'truyện đang cập nhật',
+    'novel', 
+    'web đọc truyện'
+]))
 
 @push('styles')
     <style>

@@ -3,6 +3,7 @@
 @section('title', 'Về Tác Giả Phùng Bảo Ngọc')
 
 @section('description', 'Tìm hiểu về tác giả Phùng Bảo Ngọc - Content Marketing, Tarot Reader & Manifestation Guide.')
+@section('keyword', 'phung bao ngoc, hanlamngoc, hanlamngoc.com, content marketing, tarot reader, manifestation guide')
 
 @section('content')
     <div class="contact-page">
